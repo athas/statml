@@ -117,24 +117,37 @@ The Euclidian distance from the sample mean to the real mean is
 \sqrt{(0.9653615-1)^2+(0.9419024-1)^2}=0.06764
 \]
 
-This devination could be due to rounding errors either in generating
-the samples, or in computing the sample mean.
+This deviation could be due to rounding errors either in generating
+the samples, or in computing the sample mean.  Another possibility is
+sheer randomness.
 
 \section*{Question 1.5}
 
-The code for this question is in the file \texttt{question131415.R}.
-
+The code for this question is in the file \texttt{question131415.R}.\\
 \includegraphics{img/question15-plot-1-a.pdf}
 \includegraphics{img/question15-plot-1-b.pdf}
 \includegraphics{img/question15-plot-1-c.pdf}
-
 \includegraphics{img/question15-plot-2-a.pdf}
 \includegraphics{img/question15-plot-2-b.pdf}
 \includegraphics{img/question15-plot-2-c.pdf}
 
+As the bin width decreases, the random variation in the data results
+in new local maximums that make the distribution appear more jagged
+than it really is.
+
+There is no best method to select bin widths, as the.  A common
+method is Sturges' formula, where the $n$ data points are divided into
+$\lceil\log_2n+1 \rceil$ bins.
+
 \section*{Question 1.6}
 
+The histogram is plotted with respect to density, rather than
+frequency, so it can be easily compared to the density curve.  As can
+be seen, the histogram with six bars fits the analytical curve well.
+
 \includegraphics{img/question16-plot-analytical.pdf}
+
+The marginal distribution has the following analytical expression.
 
 \begin{align*}
   p(x_1) &= \mathcal{N}(x_1|\mu_1,\Sigma_{1,1}) & \text{By CB (2.98)}\\
@@ -145,5 +158,17 @@ The code for this question is in the file \texttt{question131415.R}.
   \frac{1}{(2\pi\cdot 0.2^2)^{1/2}}\exp\left({-\frac{1}{2\cdot0.2^2}(x_1-1)^2}\right)
   & \text{Substituting $\sigma_{1,1}=0.2,\mu_1=1$}
 \end{align*}
+
+\section*{Question 1.7}
+
+\includegraphics{img/question17-plot-100.pdf}
+\includegraphics{img/question17-plot-1000-10x10.pdf}
+\includegraphics{img/question17-plot-1000-15x15.pdf}
+\includegraphics{img/question17-plot-1000-20x20.pdf}
+\includegraphics{img/question17-plot-10000.pdf}
+
+\section*{Question 1.8}
+
+
 
 \end{document}
