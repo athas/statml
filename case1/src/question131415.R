@@ -1,3 +1,4 @@
+require("gplots")
 ## Constants
 N <- 100
 mean <- c(1,1)
