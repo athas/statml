@@ -9,6 +9,6 @@ NUM=1
 $(BASENAME)$(NUM): $(BASENAME)$(NUM).c $(DEPS)
 	$(CXX) $(CXX_ARGS) -o $@ $(LIBRARIES) $<;./$@
 
-NUM=2
+NUM=3
 $(BASENAME)$(NUM): $(BASENAME)$(NUM).c
 	$(CXX) $(CXX_ARGS) -o $@ $(LIBRARIES) $<;./$@

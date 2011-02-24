@@ -40,6 +40,9 @@ print("Sample covariance:")
 print(covarianceML)
 print("Sample mean:")
 print(meanML)
+print("L:")
+print(L)
+
 
 ## Question 1.3 plot
 pdf("../img/question13-plot.pdf")

@@ -1,27 +1,33 @@
-#include "mycase1.h"
+#include "common_case.h"
 
-#define NUM_POINTS 500
+#define NUM_POINTS 900
+#define PLOTS_NUM 3
+
+static int means[PLOTS_NUM] = {-1,2,3};
+static int deviations[PLOTS_NUM] = {1,2,3};
+
+static inline double plot_fun(double inp, double mean,double sigma){
+	return gsl_ran_gaussian_pdf(inp-mean,sigma);}
+
+static inline double plot1(double inp){
+	return plot_fun(inp,means[0],deviations[0]);}
+static inline double plot2(double inp){
+	return plot_fun(inp, means[1],deviations[1]);}
+static inline double plot3(double inp){
+	return plot_fun(inp, means[2],deviations[2]);}
 
 int main(int argv, char** argc){
+	double(*map_fs[PLOTS_NUM])(double) ={plot1,plot2,plot3};
+	char label[PLOTS_NUM][255];
 
-	plot_header_t plot;
-	char* str_eq = "sin(x)";
-	init_plot("sine", "x_l", "y_l", STRING_EQ, &plot);
-	plot.data = (void *)str_eq;
-	plot_out(&plot, "case1", "svg");
-	
-	double x[NUM_POINTS];
-	double y[NUM_POINTS];
-	for (int i=0 ; i<NUM_POINTS; i++) {
-		x[i] = (double)(i)/10.0;
-		y[i] = x[i] * x[i];
+	graph_header_t plot;
+	init_graph(&plot,"Gauss normal","pdf");
+	plot.x_label = "X";
+	plot.y_label ="Y";
+	for (int j = 0; j<PLOTS_NUM;j++){
+		xy_range_t rxy = range_xy(-10, 10, NUM_POINTS,map_fs[j]);
+		snprintf(label[j], sizeof(label), "mu=%d,sigma=%d",means[j],deviations[j]);
+		plot_x_y(&plot, rxy.x,rxy.y,NUM_POINTS,label[j], lines);
 	}
-	double* d2[2];
-	d2[0] = x;
-	d2[1] = y;
-
-	plot_header_t plot2;
-	init_plot("parabola", "x_l", "y_l", X_Y_RANGE, &plot2);	
-	set_x_y_data(&plot2, d2, NUM_POINTS);
-	plot_out(&plot2, "case1.1", "pdf");
+	graph2file(&plot,"case1.1");
 }
