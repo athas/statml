@@ -21,7 +21,7 @@ $(BASENAME)$(NUM): $(BASENAME)$(NUM).c $(DEPS) out_dirs
 NUM=19
 $(BASENAME)$(NUM): $(BASENAME)$(NUM).c $(DEPS) out_dirs
 	$(CXX) $(CXX_ARGS) -o $@ $(LIBRARIES) $<;./$@; \
-	cd img_out; ./foreach.sh pnm conv.sh
+	cd img_out; bash ./foreach.sh pnm './conv.sh'; cd -
 
 out_dirs: $(OUT_DIRS)
 	mkdir -p $(OUT_DIRS)
