@@ -269,7 +269,7 @@ void gnuplot_cmd(gnuplot_ctrl *  handle, char *  cmd, ...)
 
 void gnuplot_setstyle(gnuplot_ctrl * h, char * plot_style) 
 {
-    if (strcmp(plot_style, "lines") &&
+/*    if (strcmp(plot_style, "lines") &&
         strcmp(plot_style, "points") &&
         strcmp(plot_style, "linespoints") &&
         strcmp(plot_style, "impulses") &&
@@ -280,9 +280,9 @@ void gnuplot_setstyle(gnuplot_ctrl * h, char * plot_style)
         strcmp(plot_style, "boxerrorbars")) {
         fprintf(stderr, "warning: unknown requested style: using points\n") ;
         strcpy(h->pstyle, "points") ;
-    } else {
+    } else {*/
         strcpy(h->pstyle, plot_style) ;
-    }
+//    }
     return ;
 }
 

@@ -15,7 +15,6 @@ pnm_img* pnm_subimage(pnm_img* src, int* extent){
 	return out_img;
 }
 
-
 gsl_matrix* img2train_set(pnm_img* img){
 	gsl_matrix* train_set = gsl_matrix_alloc(img->width*img->height, 3);
 	

@@ -30,5 +30,5 @@ int main(int argv, char** argc){
 		plot_x_y(&plot, rxy.x,rxy.y,NUM_POINTS,label[j], "lines");
 	}
 //	plot_viewbox(&plot,-1,3,-1,3);
-	figure2file(&plot,"case11.tex");
+	figure2file(&plot,TEX_OUT_DIR"case11.tex");
 }

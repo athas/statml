@@ -10,6 +10,7 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
 
+#define TEX_OUT_DIR "tex_out/"
 
 pnm_img* pnm_subimage(pnm_img* src, int* extent);
 
