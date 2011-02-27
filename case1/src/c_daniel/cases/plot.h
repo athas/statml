@@ -5,23 +5,48 @@
 
 #define MAX_PLOTS 20
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+	
 typedef enum{
-	pt_lines,
-	pt_points,
-	pt_linespoints,
-	pt_impulses,
-	pt_dots,
-	pt_steps,
-	pt_errorbars,
-	pt_boxes,
-	pt_boxeserrorbars
-} pt_enum;
+	ps_lines,
+	ps_points,
+	ps_dots,
+	ps_steps,
+	ps_circles,
+	ps_impulses,
+	ps_histeps,
+	ps_linespoints,
+	ps_boxes,
+	ps_histograms
+/*, the following are intentionally left out
+	ps_financebars,
+	ps_xyerrorbars,
+	ps_xyerrorlines,
+	ps_yerrorlines,
+	ps_vectors,
+	ps_candlesticks,
+	ps_boxxyerrorbars,
+	ps_filledcurves,
+	ps_boxerrorbars,
+	ps_xerrorbar,
+	ps_errorbars,
+	ps_fsteps,
+	ps_errorlines,
+	ps_xerrorlines,
+	ps_yerrorbars,
+	ps_rgbimage,
+	ps_rgbalpha,
+	ps_pm3d,
+	ps_image,
+	ps_labels*/
+} plot_style;
 
 
 typedef struct{
+	char* style;
 	char* label;
-	pt_enum style;
 	double* x;
 	double* y;
 	int num_points;
@@ -32,30 +57,28 @@ typedef struct {
 	char* format;	
 	char* x_label;
 	char* y_label;
+	char lock_bbox;
 	double b_box[4];
 	gnuplot_ctrl* g_ctrl;
 	int num_plots;
 	plot_data_t* plots;
-} graph_header_t;
+} figure_ctrl;
 
+void raw_gp_cmd(figure_ctrl* p, char* cmd);
 
-typedef struct{
-	double* x;
-	double* y;
-} xy_range_t;
+char* plot_style2str(plot_style type);
 
-void set_range(graph_header_t* p, char axis, double from, double to);
+void plot_viewbox(figure_ctrl* p, double xmin, double xmax, double ymin, double ymax);
 
-void init_graph(graph_header_t* p, char* name,char* format);
+void init_figure(figure_ctrl* p, char* name,char* format);
 
-void plot_x_y(graph_header_t* p, double* x, double* y, int num_points, char *label, pt_enum);
+void plot_x_y(figure_ctrl* p, double* x, double* y, int num_points, char *label, char* style);
 
-void graph2file(graph_header_t* p,char* fname);
-
-double* range_x(double, double, int);
-
-xy_range_t range_xy(double, double, int, double (*)(double));
-
+void figure2file(figure_ctrl* p,char* fname);
+#ifdef __cplusplus
+}
+#endif
+	
 #endif /* end of include guard: PLOT_H_CZLG08EY */
 
 

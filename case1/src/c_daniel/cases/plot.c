@@ -1,27 +1,113 @@
+#undef PLOT_H_CZLG08EY
 #include "plot.h"
 #include <stdio.h>
 
 
-double* range_x(double from, double to, int num_points){
-	double incr = (to-from)/num_points;
-	double tmpx=from;
-	double* points = (double*)malloc(sizeof(double)*num_points);
-	for (int i=0; i<num_points; i++,tmpx+=incr)
-		points[i] = tmpx;
-	return points;
+char* plot_style2str(plot_style type){
+	switch (type) {
+		case ps_lines:
+			return "lines";
+			break;
+		case ps_points:
+			return "points";
+			break;
+		case ps_dots:
+			return "dots";
+			break;
+		case ps_steps:
+			return "steps";
+			break;
+		case ps_circles:
+			return "circles";
+			break;
+		case ps_impulses:
+			return "impulses";
+			break;
+		case ps_histeps:
+			return "histeps";
+			break;
+		case ps_linespoints:
+			return "linespoints";
+			break;
+		case ps_boxes:
+			return "boxes";
+			break;
+		case ps_histograms:
+			return "histograms";
+			break;
+			/*		case ps_financebars:
+			 return "financebars";
+			 break;
+			 case ps_xyerrorbars:
+			 return "xyerrorbars";
+			 break;
+			 case ps_xyerrorlines:
+			 return "xyerrorlines";
+			 break;
+			 case ps_yerrorlines:
+			 return "yerrorlines";
+			 break;
+			 case ps_vectors:
+			 return "vectors";
+			 break;
+			 case ps_candlesticks:
+			 return "candlesticks";
+			 break;
+			 case ps_boxxyerrorbars:
+			 return "boxxyerrorbars";
+			 break;
+			 case ps_filledcurves:
+			 return "filledcurves";
+			 break;
+			 case ps_boxerrorbars:
+			 return "boxerrorbars";
+			 break;
+			 case ps_xerrorbar:
+			 return "xerrorbar";
+			 break;
+			 case ps_errorbars:
+			 return "errorbars";
+			 break;
+			 case ps_fsteps:
+			 return "fsteps";
+			 break;
+			 case ps_errorlines:
+			 return "errorlines";
+			 break;
+			 case ps_xerrorlines:
+			 return "xerrorlines";
+			 break;
+			 case ps_yerrorbars:
+			 return "yerrorbars";
+			 break;
+			 case ps_rgbimage:
+			 return "rgbimage";
+			 break;
+			 case ps_rgbalpha:
+			 return "rgbalpha";
+			 break;
+			 case ps_pm3d:
+			 return "pm3d";
+			 break;
+			 case ps_image:
+			 return "image";
+			 break;
+			 case ps_labels:
+			 return "labels";
+			 break;
+			 */
+		default:
+			return plot_style2str(ps_circles);
+			break;
+	}
 }
 
-xy_range_t range_xy(double from, double to, int num_points,double(*map_fun)(double)){
-	xy_range_t out;
-	out.x = range_x(from, to, num_points);
-	out.y = (double*)malloc(sizeof(double)*num_points);
-	for (int i=0; i<num_points; i++)
-		out.y[i] = map_fun(out.x[i]);
-	return out;
+inline void raw_gp_cmd(figure_ctrl* p, char* cmd){
+	gnuplot_cmd(p->g_ctrl, cmd);
 }
 
 
-void init_graph(graph_header_t* p, char* name, char* format){
+void init_figure(figure_ctrl* p, char* name, char* format){
 	p->g_ctrl = gnuplot_init();
 	p->num_plots = 0;
 	p->name = name;
@@ -42,39 +128,7 @@ static inline double dmax(double a, double b){
 static inline double dmin(double a, double b){
 	return a < b ? a : b;}
 
-static inline char* type2char(pt_enum type){
-	switch (type) {
-	case pt_points:
-		return "points";
-		break;
-	case pt_linespoints:
-		return "linespoints";
-		break;
-	case pt_impulses:
-		return "impulses";
-		break;
-	case pt_dots:
-		return "dots";
-		break;
-	case pt_steps:
-		return "steps";
-		break;
-	case pt_errorbars:
-		return "errorbars";
-		break;
-	case pt_boxes:
-		return "boxes";
-		break;
-	case pt_boxeserrorbars:
-		return "boxeserrorbars";
-		break;
-	default:
-		return "lines";
-		break;
-	}
-}
-
-void plot_x_y(graph_header_t* p, double* x, double* y, int num_points, char *label, pt_enum type){
+void plot_x_y(figure_ctrl* p, double* x, double* y, int num_points, char *label, char* style){
 	p->b_box[0] = dmin(p->b_box[0], x[0]);
 	p->b_box[1] = dmax(p->b_box[1], x[num_points-1]);
 
@@ -92,14 +146,18 @@ void plot_x_y(graph_header_t* p, double* x, double* y, int num_points, char *lab
 	this_p->x = x;
 	this_p->y = y;
 	this_p->label=label;
-	this_p->style = type;
+	this_p->style = style;
 }
 
-void set_range(graph_header_t* p, char axis, double from, double to){
-	
+void plot_viewbox(figure_ctrl* p, double xmin, double xmax, double ymin, double ymax){
+	p->b_box[0]=xmin;
+	p->b_box[1]=xmax;
+	p->b_box[2]=ymin;
+	p->b_box[3]=ymax;
+	p->lock_bbox = 1;
 }
 
-void graph2file(graph_header_t* p, char* fname){
+void figure2file(figure_ctrl* p, char* fname){
 	char str_buf[1024];
 
 	gnuplot_ctrl* ctrl = gnuplot_init();
@@ -108,25 +166,26 @@ void graph2file(graph_header_t* p, char* fname){
 	if (p->y_label)
 		gnuplot_set_ylabel (ctrl,p->y_label);
 	
-#define PPAD_F 1.1
-	snprintf(str_buf, sizeof(str_buf), "set yrange [%f:%f]",
-			 p->b_box[2]<0?p->b_box[2]*PPAD_F:0,p->b_box[3]*PPAD_F);
-	gnuplot_cmd(ctrl, str_buf);
+	double __ppad = 1.0;
+	if (!p->lock_bbox)
+		__ppad = 1.1;
 
 	snprintf(str_buf, sizeof(str_buf), "set xrange [%f:%f]",
-			 p->b_box[2]<0?p->b_box[0]*PPAD_F:0,p->b_box[1]*PPAD_F);
+			 p->b_box[0]<0?p->b_box[0]*__ppad:0,p->b_box[1]*__ppad);
 	gnuplot_cmd(ctrl, str_buf);
-	
-	
+
+	snprintf(str_buf, sizeof(str_buf), "set yrange [%f:%f]",
+			 p->b_box[2]<0?p->b_box[2]*__ppad:0,p->b_box[3]*__ppad);
+	gnuplot_cmd(ctrl, str_buf);
+		
 	for (int i =0; i<p->num_plots;i++){
-		gnuplot_setstyle(ctrl,type2char(p->plots[i].style));
+		gnuplot_setstyle(ctrl,p->plots[i].style);
 		snprintf(str_buf, sizeof(str_buf), "set terminal %s", p->format);
 		gnuplot_cmd(ctrl, str_buf);
 		
-		snprintf(str_buf, sizeof(str_buf), "set output \"%s.%s\"", fname, p->format);
+		snprintf(str_buf, sizeof(str_buf), "set output \"%s\"", fname);
 		gnuplot_cmd(ctrl, str_buf);
 		gnuplot_plot_xy(ctrl, p->plots[i].x, p->plots[i].y, p->plots[i].num_points, p->plots[i].label);
 	}
 	gnuplot_close(ctrl);
 }
-
