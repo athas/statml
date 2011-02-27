@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <math.h>
 
+#ifndef M_PI
+#define M_PI 3.1415926535897932384626433832795
+#endif
+
 typedef gsl_vector vect;
 typedef gsl_matrix mtrx;
 
@@ -55,27 +59,27 @@ int main(int argv, char** argc){
 			train_area2[4] = {125-1, 305-1,264-1,328-1};
 	
 	/*read images from file*/
-	pnm_img	* kande1 = pnm_read(IMG_IN_DIR "kande1.pnm"),
-			* kande2 = pnm_read(IMG_IN_DIR "kande2.pnm");
+		pnm_img	* kande1 = pnm_read(IMG_IN_DIR "kande1.pnm");
+//			* kande2 = pnm_read(IMG_IN_DIR "kande2.pnm");
 	
-	pnm_img	* train_img1 =pnm_subimage(kande1, train_area1),
-			* train_img2 =pnm_subimage(kande2, train_area2);
+		pnm_img	* train_img1 =pnm_subimage(kande1, train_area1);
+	//		* train_img2 =pnm_subimage(kande2, train_area2);
 	
-	mtrx	* train_set1 = img2train_set(train_img1),
-				* train_set2 = img2train_set(train_img2);
+		mtrx	* train_set1 = img2train_set(train_img1);
+	//		* train_set2 = img2train_set(train_img2);
 	
-	vect	* s_mean1 = sample_mean(train_set1),
-				* s_mean2 = sample_mean(train_set2);
+		vect	* s_mean1 = sample_mean(train_set1);
+	//		* s_mean2 = sample_mean(train_set2);
 		
-	mtrx	* s_cov1 = sample_cov(train_set1, s_mean1),
-				* s_cov2 = sample_cov(train_set2, s_mean2);
+		mtrx	* s_cov1 = sample_cov(train_set1, s_mean1);
+	//			* s_cov2 = sample_cov(train_set2, s_mean2);
 	
-	pnm_img	* density1 = img_pdf(kande1, s_mean1, s_cov1),
-			*density2 = img_pdf(kande2, s_mean2, s_cov2);
+	pnm_img	* density1 = img_pdf(kande1, s_mean1, s_cov1);
+		//	*density2 = img_pdf(kande2, s_mean2, s_cov2);
 
 	printf("Output images saved in folder :" IMG_OUT_DIR"\n\n");
 	pnm_write(density1, IMG_OUT_DIR "train_img1.pnm");
-	pnm_write(density2, IMG_OUT_DIR "train_img2.pnm");
+//	pnm_write(density2, IMG_OUT_DIR "train_img2.pnm");
 	
 	printf("sample mean1:\n");
 	print_vec(s_mean1, "|%.5f|\n");
@@ -83,9 +87,8 @@ int main(int argv, char** argc){
 	print_mtrx(s_cov1, "%.5f |");
 	
 	gsl_matrix_free(train_set1);
-	gsl_matrix_free(train_set2);
+//	gsl_matrix_free(train_set2);
 	gsl_vector_free(s_mean1);
-	gsl_vector_free(s_mean2);
-	
-
+//	gsl_vector_free(s_mean2);
+	printf("\n%f\n", M_PI);
 }
