@@ -33,15 +33,13 @@ mtrx* generate_samples(int n_samples,vect* mean_mv, mtrx* L){
 }
 
 int main(int argv, char** argc){
+	printf("\n\nRunning code for question 1.3:\n\n");
 
-	double mean[2] = {1.0,1.0};
-	gsl_vector_view mean_mv = gsl_vector_view_array(mean,2);
-	print_vec(&mean_mv.vector, "%.3f |");
-	
-	double covL[4]={0.3, 0.2,
-					0.2, 0.2};
+	double mean[2] = {	1.0,	1.0},
+			covL[4]={	0.3, 	0.2,
+						0.2, 	0.2};
+	gsl_vector_view mean_mv = gsl_vector_view_array(mean,2);	
 	gsl_matrix_view L_mv = gsl_matrix_view_array(covL,2,2);
-	print_mtrx(&L_mv.matrix,  "%.3f |");
 	
 	//chol
 	gsl_linalg_cholesky_decomp(&L_mv.matrix);
@@ -53,10 +51,13 @@ int main(int argv, char** argc){
 	//calculate most likely mean from samples
 	vect* meanML = sample_mean(samples);
 	
+	printf("sampled mean:\n");
+	print_vec(meanML, "|%.5f|");
+	
 	//sample_cov
 	mtrx* covML = sample_cov(samples,&mean_mv.vector);
-	printf("covariance matrix:\n");
-	print_mtrx(covML,  "%.3f |");
+	printf("sampled covariance matrix:\n");
+	print_mtrx(covML,  "%.5f |");
 	
 	double ys[NUM_SAMPLES*2];
 	for (int i=0; i<NUM_SAMPLES; i++) {
@@ -73,5 +74,7 @@ int main(int argv, char** argc){
 	plot_x_y(&plot,meanML->data,meanML->data+1,1,"Sampled  $\\\\mu$",plot_style2str(ps_points));
 	
 	plot_viewbox(&plot,-1,3,-1,4);
+	
+	printf("Output plot saved in folder :" TEX_OUT_DIR"\n\n");
 	figure2file(&plot,TEX_OUT_DIR"case13.tex");
 }

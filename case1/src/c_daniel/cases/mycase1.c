@@ -17,6 +17,8 @@ static inline double plot3(double inp){
 	return plot_fun(inp, means[2],deviations[2]);}
 
 int main(int argv, char** argc){
+	printf("\n\nRunning code for question 1.1:\n\n");
+	
 	double(*map_fs[PLOTS_NUM])(double) ={plot1,plot2,plot3};
 	char label[PLOTS_NUM][255];
 
@@ -30,5 +32,6 @@ int main(int argv, char** argc){
 		plot_x_y(&plot, rxy.x,rxy.y,NUM_POINTS,label[j], "lines");
 	}
 //	plot_viewbox(&plot,-1,3,-1,3);
+	printf("Output plot saved in folder :" TEX_OUT_DIR"\n\n");
 	figure2file(&plot,TEX_OUT_DIR"case11.tex");
 }

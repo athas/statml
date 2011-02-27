@@ -21,6 +21,7 @@ static inline double dmin(double a, double b){
 
 
 pnm_img* img_pdf(pnm_img* img, vect* sigma, mtrx* cov){
+	
 	double one_over = pow(M_PI,3/2) * sqrt(matrix_determinant(cov));
 	mtrx* cov_inv = inverse_matrix(cov);
 	
@@ -48,6 +49,7 @@ pnm_img* img_pdf(pnm_img* img, vect* sigma, mtrx* cov){
 }
 
 int main(int argv, char** argc){
+	printf("\n\nRunning code for question 1.9:\n\n");
 
 	int		train_area1[4] = {150-1,330-1,264-1,328-1},
 			train_area2[4] = {125-1, 305-1,264-1,328-1};
@@ -71,6 +73,7 @@ int main(int argv, char** argc){
 	pnm_img	* density1 = img_pdf(kande1, s_mean1, s_cov1),
 			*density2 = img_pdf(kande2, s_mean2, s_cov2);
 
+	printf("Output images saved in folder :" IMG_OUT_DIR"\n\n");
 	pnm_write(density1, IMG_OUT_DIR "train_img1.pnm");
 	pnm_write(density2, IMG_OUT_DIR "train_img2.pnm");
 	
