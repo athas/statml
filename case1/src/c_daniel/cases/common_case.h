@@ -1,6 +1,8 @@
 
 #ifndef MYCASE_1_H_GUARD
 #define MYCASE_1_H_GUARD
+#include <stdio.h>
+#include <math.h>
 #include "ppm.h"
 #include "plot.h"
 #include "statml/statml.h"
