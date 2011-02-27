@@ -1,7 +1,4 @@
-#include "ppm.h"
 #include "common_case.h"
-#include <stdio.h>
-#include <math.h>
 
 typedef gsl_vector vect;
 typedef gsl_matrix mtrx;
