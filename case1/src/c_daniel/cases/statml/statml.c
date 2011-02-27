@@ -74,7 +74,6 @@ double matrix_determinant(gsl_matrix* input){
 	gsl_permutation *p = gsl_permutation_alloc(n);
 	gsl_matrix_memcpy( work, input);
 	gsl_linalg_LU_decomp( work, p, &s);
-	print_mtrx(work, "%f |");
 	double output = gsl_linalg_LU_det( work, s );
 	gsl_matrix_free( work );
 	gsl_permutation_free( p );
