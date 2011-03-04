@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <string.h>
 #include "ppm.h"
+#include <unistd.h> 
 
 inline static int num_channels(int p){
 	switch (p){
@@ -60,6 +61,13 @@ static inline int read_line(char* buffer, const int max_size, FILE* fp){
 		return 0;
 } 
 
+static void path_error(const char* file_name){
+	char path[512];
+	getcwd(path, 512);
+	
+	printf("\"%s%s\" does not exist\n", path, file_name);
+}
+
 pnm_img *pnm_read(const char file_name[]){
 	FILE* fp;
 	int status;
@@ -69,7 +77,7 @@ pnm_img *pnm_read(const char file_name[]){
 	// open file
 	fp = fopen(file_name,"r"); 
 	if(fp == NULL) {
-		printf("File does not exist\n");
+		path_error(file_name);
 		return NULL;
 	}
 	

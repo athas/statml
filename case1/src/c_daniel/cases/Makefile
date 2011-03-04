@@ -12,15 +12,24 @@ default: all
 NUM=1
 
 $(BASENAME)$(NUM): $(BASENAME)$(NUM).c $(DEPS) out_dirs
-	$(CXX) $(CXX_ARGS) -o $@ $(LIBRARIES) $<;./$@
+	$(CXX) $(CXX_ARGS) -o $@ $(LIBRARIES) $<
+
+$(BASENAME)$(NUM)_run: $(BASENAME)$(NUM)
+	./$(BASENAME)$(NUM);\
 
 NUM=3
 $(BASENAME)$(NUM): $(BASENAME)$(NUM).c $(DEPS) out_dirs
-	$(CXX) $(CXX_ARGS) -o $@ $(LIBRARIES) $<;./$@
+	$(CXX) $(CXX_ARGS) -o $@ $(LIBRARIES) $<
+
+$(BASENAME)$(NUM)_run: $(BASENAME)$(NUM)
+	./$(BASENAME)$(NUM);\
 
 NUM=19
 $(BASENAME)$(NUM): $(BASENAME)$(NUM).c $(DEPS) out_dirs
-	$(CXX) $(CXX_ARGS) -o $@ $(LIBRARIES) $<;./$@; \
+	$(CXX) $(CXX_ARGS) -o $@ $(LIBRARIES) $<
+
+$(BASENAME)$(NUM)_run: $(BASENAME)$(NUM)
+	./$(BASENAME)$(NUM);\
 	cd img_out; bash ./foreach.sh pnm './conv.sh'; cd -
 
 out_dirs: $(OUT_DIRS)
