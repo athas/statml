@@ -124,14 +124,10 @@ RMS <- function (ts, xs, ws) {
   })))
 }
 
-avgParamMLErr <- function (selx, seltest) {
-  ret <- 0
+paramMLErr <- function (selx, seltest) {
   D <- dim(selx)[2]
-  wss <- apply(array(1:10), 1, function(i) {
-    paramML <- paramML(D, selx, train[,2])
-    RMS(array(test[,2]), seltest, paramML)
-  })
-  sum(wss) / length(wss)
+  paramML <- paramML(D, selx, train[,2])
+  RMS(array(test[,2]), seltest, paramML)
 }
 
 testPrec <- function (precision, xs, txs) {
@@ -158,12 +154,12 @@ sel2MAPres <- apply(precs, 1, function (prec) {
     dim(seltest) <- c(length(seltest),1)
     testPrec(prec, selx, seltest)
 })
-perr1 <- avgParamMLErr(train[,c(4,7,8,9)], test[,c(4,7,8,9)])
+perr1 <- paramMLErr(train[,c(4,7,8,9)], test[,c(4,7,8,9)])
 sel2x <- train[,c(8)]
 sel2test <- test[,c(8)]
 dim(sel2x) <- c(length(sel2x),1)
 dim(sel2test) <- c(length(sel2test),1)
-perr2 <- avgParamMLErr(sel2x, sel2test)
+perr2 <- paramMLErr(sel2x, sel2test)
 
 pdf("../img/question12-plot.pdf")
 plot.new()
