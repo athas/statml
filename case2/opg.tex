@@ -69,17 +69,26 @@ results.
 
 \begin{tabular}{|l|r|}
   \textbf{Selection} & \textbf{RMS error} \\\hline
-  1 & 4.379524 \\\hline
-  2 & 6.25712
+  1 & 4.944719 \\\hline
+  2 & 6.880314
 \end{tabular}
 
 Selection 1 appears to have the smaller error compared to the true
 results, which is expected as its model incorporates more measurements
 than selection 2.  While body measurements are probably only slightly
 independent, adding more still constitutes a net information increase.
-
+\newpage
 \section*{Question 1.2}
 
 The code for this question is in \texttt{src/1112.R}.
+
+\includegraphics[width=10cm]{img/question12-plot.pdf}
+
+Below is a close-up of the ML estimate and the MAP estimate.
+
+\includegraphics[width=10cm]{img/question12-plot-b.pdf}
+
+We see that the MAP estimate has a slightly smaller error when the
+prior precision is in the interval from roughly 0 to 500.
 
 \end{document}

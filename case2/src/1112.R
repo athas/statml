@@ -168,9 +168,9 @@ print(perr2)
 
 pdf("../img/question12-plot.pdf")
 plot.new()
-plot.window(xlim=c(-1000,1000), ylim=c(4,15))
+plot.window(xlim=c(-1000,1000), ylim=c(4,10))
 box()
-axis(1, at=seq(-1000, 1000, length=31))
+axis(1, at=seq(-1000, 1000, length=51))
 axis(2)
 title(main="RMS error of MAP estimation")
 lines(precs,sel1MAPres, lwd=1, pch=1, col="blue")
@@ -182,4 +182,17 @@ legend("topright", c("Selection 1 (MAP)",
                      "Selection 1 (ML)",
                      "Selection 2 (ML)"),
        title="Selections", lwd=1, pch=1, col=c("blue", "red", "darkgreen", "brown"))
+dev.off()
+pdf("../img/question12-plot-b.pdf")
+plot.new()
+plot.window(xlim=c(-1000,1000), ylim=c(4.5,5.5))
+box()
+axis(1, at=seq(-1000, 1000, length=51))
+axis(2)
+title(main="RMS error of MAP estimation (closeup)")
+lines(precs,sel1MAPres, lwd=1, pch=1, col="blue")
+lines(c(-1000,1000), c(perr1, perr1), lwd=1, pch=1, col="darkgreen")
+legend("topright", c("Selection 1 (MAP)",
+                     "Selection 1 (ML)"),
+       title="Selections", lwd=1, pch=1, col=c("blue", "darkgreen"))
 dev.off()
