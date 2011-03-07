@@ -1,11 +1,11 @@
-
-
+#ifndef _GNUPLOT_PIPES_C_
+#define _GNUPLOT_PIPES_C_
 /*-------------------------------------------------------------------------*/
 /**
   @file		gnuplot_i.c
-  @author	N. Devillard
-  @date	Sep 1998
-  @version	$Revision: 2.10 $
+  @author	N. Devillard (parts R. Bradley)
+  @date	Sep 1998, Oct 2004, Sept 2005, Nov 2005, Apr 2006
+  @version	$Revision: 2.10.3 $
   @brief	C interface to gnuplot.
 
   gnuplot is a freely available, command-driven graphical display tool for
@@ -13,6 +13,25 @@
   well as other operating systems. The following module enables sending
   display requests to gnuplot through simple C calls.
   
+  3D and colour printing extensions added October 2004 by Robert Bradley
+  (robert.bradley@merton.ox.ac.uk), based on existing code:
+  
+  gnuplot_splot (plot 3D graph), gnuplot_set_zlabel (set the z axis label for 3D plots),
+  gnuplot_hardcopy_colour (for printing in colour)
+  
+  OS X and limited Windows support added 11-13th September 2005:
+
+  On Windows, pgnuplot and wgnuplot.exe must be in the current directory.
+  On OS X, if DISPLAY environment variable is not set, or USE_AQUA=1, aqua is
+  used instead of x11.
+  gnuplot_setterm also added to allow the terminal type to be set.
+  
+  gnuplot_plot_obj_xy added 15th September 2005 - plotting data from arbitrary
+  structures using callback functions
+  gnuplot_contour_plot added 23rd November 2005 (plots contours, use
+  gnuplot_setstyle to set the contour style)
+  
+  gnuplot_splot_grid added 2nd April 2006 - plots 2D grids of data [x,y]
 */
 /*--------------------------------------------------------------------------*/
 
@@ -20,7 +39,7 @@
 	$Id: gnuplot_i.c,v 2.10 2003/01/27 08:58:04 ndevilla Exp $
 	$Author: ndevilla $
 	$Date: 2003/01/27 08:58:04 $
-	$Revision: 2.10 $
+	$Revision: 2.10.2 $
  */
 
 /*---------------------------------------------------------------------------
@@ -42,15 +61,46 @@
 /** Maximal size of a name in the PATH */
 #define PATH_MAXNAMESZ       4096
 
+#ifdef _WIN32
+#undef P_tmpdir
+#endif
 /** Define P_tmpdir if not defined (this is normally a POSIX symbol) */
 #ifndef P_tmpdir
 #define P_tmpdir "."
+#endif
+
+#define GNUPLOT_TEMPFILE "%s/gnuplot-i-XXXXXX"
+#ifndef _WIN32
+#define GNUPLOT_EXEC "gnuplot"
+#else
+#define GNUPLOT_EXEC "pgnuplot.exe"
 #endif
 
 /*---------------------------------------------------------------------------
                             Function codes
  ---------------------------------------------------------------------------*/
 
+#ifdef _WIN32
+#include <windows.h>
+#include <fcntl.h>
+
+int mkstemp(char* templ) {
+    srand(time(NULL));
+    int i;
+    char *start=strstr(templ, "XXXXXX");
+    for (i=0;i<6;i++) {
+        start[i]=(char) (48+((int) rand()*10/32768.0));
+    }
+    //while ((start=strchr(templ, '/'))!=NULL) {start[0]='-';}
+    //printf("Opening %s...\n",templ);
+    i=open(templ,O_RDWR | O_CREAT);
+    if (i!=-1) {
+        DWORD dwFileAttr=GetFileAttributes(templ);
+        SetFileAttributes(templ,dwFileAttr & !FILE_ATTRIBUTE_READONLY);
+    }
+    return i;
+}
+#endif
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -81,6 +131,7 @@
   
  */
 /*-------------------------------------------------------------------------*/
+
 char * gnuplot_get_program_path(char * pname)
 {
     int         i, j, lg;
@@ -127,8 +178,6 @@ char * gnuplot_get_program_path(char * pname)
     return buf ;
 }
 
-
-
 /*-------------------------------------------------------------------------*/
 /**
   @brief	Opens up a gnuplot session, ready to receive commands.
@@ -145,11 +194,20 @@ char * gnuplot_get_program_path(char * pname)
 gnuplot_ctrl * gnuplot_init(void)
 {
     gnuplot_ctrl *  handle ;
-
-    if (getenv("DISPLAY") == NULL) {
-        fprintf(stderr, "cannot find DISPLAY variable: is it set?\n") ;
-    }
+#ifndef _WIN32
+#ifndef __APPLE__
+        if (getenv("DISPLAY") == NULL) {
+            fprintf(stderr, "cannot find DISPLAY variable: is it set?\n") ;
+        }
+#endif
+#endif
+#ifndef _WIN32
 	if (gnuplot_get_program_path("gnuplot")==NULL) {
+		fprintf(stderr, "cannot find gnuplot in your PATH");
+		return NULL ;
+	}
+#endif
+	if (gnuplot_get_program_path(GNUPLOT_EXEC)==NULL) {
 		fprintf(stderr, "cannot find gnuplot in your PATH");
 		return NULL ;
 	}
@@ -161,16 +219,25 @@ gnuplot_ctrl * gnuplot_init(void)
     handle->nplots = 0 ;
     gnuplot_setstyle(handle, "points") ;
     handle->ntmp = 0 ;
-
-    handle->gnucmd = popen("gnuplot", "w") ;
+    handle->gnucmd = popen(GNUPLOT_EXEC, "w") ;
     if (handle->gnucmd == NULL) {
         fprintf(stderr, "error starting gnuplot\n") ;
         free(handle) ;
         return NULL ;
     }
+#ifdef _WIN32
+    gnuplot_setterm(handle,"windows");
+#elif __APPLE__
+    // Try to determine whether we should use aqua or x11 as our default
+    if (getenv("DISPLAY") == NULL || (getenv("USE_AQUA")!=NULL && strcmp(getenv("USE_AQUA"),"1")>=0))
+        gnuplot_setterm(handle,"aqua");
+    else
+        gnuplot_setterm(handle,"x11");
+#else
+    gnuplot_setterm(handle,"x11");
+#endif
     return handle;
 }
-
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -195,7 +262,13 @@ void gnuplot_close(gnuplot_ctrl * handle)
     }
     if (handle->ntmp) {
         for (i=0 ; i<handle->ntmp ; i++) {
-            remove(handle->to_delete[i]) ;
+#ifdef _WIN32
+            int x=remove(handle->to_delete[i]) ;
+            if (x)
+                printf("Failure to delate %s: error number %d\n",handle->to_delete[i],errno);
+#else
+        remove(handle->to_delete[i]);
+#endif
         }
     }
     free(handle) ;
@@ -240,7 +313,7 @@ void gnuplot_cmd(gnuplot_ctrl *  handle, char *  cmd, ...)
     strcat(local_cmd, "\n");
 
     fputs(local_cmd, handle->gnucmd) ;
-    fflush(handle->gnucmd) ;
+    fflush(handle->gnucmd);
     return ;
 }
 
@@ -269,7 +342,7 @@ void gnuplot_cmd(gnuplot_ctrl *  handle, char *  cmd, ...)
 
 void gnuplot_setstyle(gnuplot_ctrl * h, char * plot_style) 
 {
-/*    if (strcmp(plot_style, "lines") &&
+    if (strcmp(plot_style, "lines") &&
         strcmp(plot_style, "points") &&
         strcmp(plot_style, "linespoints") &&
         strcmp(plot_style, "impulses") &&
@@ -280,10 +353,31 @@ void gnuplot_setstyle(gnuplot_ctrl * h, char * plot_style)
         strcmp(plot_style, "boxerrorbars")) {
         fprintf(stderr, "warning: unknown requested style: using points\n") ;
         strcpy(h->pstyle, "points") ;
-    } else {*/
+    } else {
         strcpy(h->pstyle, plot_style) ;
-//    }
+    }
     return ;
+}
+
+/*-------------------------------------------------------------------------*/
+/**
+  @brief	Change the terminal of a gnuplot session.
+  @param	h Gnuplot session control handle
+  @param	terminal Terminal name (character string)
+  @return	void
+
+  No attempt is made to check the validity of the terminal name.  This function
+  simply makes a note of it and calls gnuplot_cmd to change the name
+ */
+/*--------------------------------------------------------------------------*/
+
+void gnuplot_setterm(gnuplot_ctrl * h, char * terminal) 
+{
+    char cmd[64];
+    strncpy(h->term, terminal,32);
+    h->term[31]=0;
+    sprintf(cmd,"set terminal %s",h->term);
+    gnuplot_cmd(h,cmd);
 }
 
 
@@ -328,6 +422,25 @@ void gnuplot_set_ylabel(gnuplot_ctrl * h, char * label)
     return ;
 }
 
+/*-------------------------------------------------------------------------*/
+/**
+  @brief	Sets the z label of a gnuplot session.
+  @param	h Gnuplot session control handle.
+  @param	label Character string to use for Z label.
+  @return	void
+
+  Sets the z label for a gnuplot session.  (Added by Robert Bradley 12 October 2004)
+ */
+/*--------------------------------------------------------------------------*/
+
+void gnuplot_set_zlabel(gnuplot_ctrl * h, char * label)
+{
+    char    cmd[GP_CMD_SIZE] ;
+
+    sprintf(cmd, "set zlabel \"%s\"", label) ;
+    gnuplot_cmd(h, cmd) ;
+    return ;
+}
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -411,7 +524,7 @@ void gnuplot_plot_x(
     }
 
     /* Open temporary file for output   */
-	sprintf(name, "%s/gnuplot-i-XXXXXX", P_tmpdir);
+	sprintf(name, GNUPLOT_TEMPFILE, P_tmpdir);
     if ((tmpfd=mkstemp(name))==-1) {
         fprintf(stderr,"cannot create temporary file: exiting plot") ;
         return ;
@@ -506,7 +619,7 @@ void gnuplot_plot_xy(
     }
 
     /* Open temporary file for output   */
-	sprintf(name, "%s/gnuplot-i-XXXXXX", P_tmpdir);
+	sprintf(name, GNUPLOT_TEMPFILE, P_tmpdir);
     if ((tmpfd=mkstemp(name))==-1) {
         fprintf(stderr,"cannot create temporary file: exiting plot") ;
         return ;
@@ -542,7 +655,448 @@ void gnuplot_plot_xy(
     return ;
 }
 
+/*-------------------------------------------------------------------------*/
+/**
+  @brief	Plot a 3d graph from a list of points.
+  @param	handle		Gnuplot session control handle.
+  @param	x			Pointer to a list of x coordinates.
+  @param	y			Pointer to a list of y coordinates.
+  @param	z			Pointer to a list of z coordinates.
+  @param	n			Number of doubles in x (y and z must be the the same).
+  @param	title		Title of the plot.
+  @return	void
 
+  gnuplot_splot(handle,x,y,z,n,title);
+  Based on gnuplot_plot_xy, modifications by Robert Bradley 12/10/2004
+
+  Plots a 3d graph from a list of points, passed in the form of three arrays x, y and z.  All arrays are assumed to
+  contain the same number of values.
+
+  @code
+    gnuplot_ctrl    *h ;
+	double x[50] ; y[50] ; z[50];
+    int i ;
+
+    h = gnuplot_init() ;
+    for (i=0 ; i<50 ; i++) {
+        x[i] = (double)(i)/10.0 ;
+        y[i] = x[i] * x[i] ;
+        z[i] = x[i] * x[i]/2.0;
+    }
+    gnuplot_splot(h, x, y, z, 50, "parabola") ;
+    sleep(2) ;
+    gnuplot_close(h) ;
+  @endcode
+ */
+/*--------------------------------------------------------------------------*/
+
+int gnuplot_splot(gnuplot_ctrl *handle, double *x, double *y, double *z, int n, char *title) {
+    int i;
+	int		tmpfd ;
+    char    name[128] ;
+    char    cmd[GP_CMD_SIZE] ;
+    char    line[GP_CMD_SIZE] ;
+
+    if (handle==NULL || x==NULL || y==NULL || (n<1)) return 1;
+    if (handle->nplots > 0)
+      return 1;
+    /* Open one more temporary file? */
+    if (handle->ntmp == GP_MAX_TMP_FILES - 1) {
+        fprintf(stderr,
+                "maximum # of temporary files reached (%d): cannot open more",
+                GP_MAX_TMP_FILES) ;
+        return 1;
+    }
+
+    /* Open temporary file for output   */
+	sprintf(name, GNUPLOT_TEMPFILE, P_tmpdir);
+    if ((tmpfd=mkstemp(name))==-1) {
+        fprintf(stderr,"cannot create temporary file: exiting plot") ;
+        return 1;
+    }
+    /* Store file name in array for future deletion */
+    strcpy(handle->to_delete[handle->ntmp], name) ;
+    handle->ntmp ++ ;
+
+    /* Write data to this file  */
+    for (i=0 ; i<n; i++) {
+        sprintf(line, "%g %g %g\n", x[i], y[i], z[i]) ;
+		write(tmpfd, line, strlen(line));
+    }
+    close(tmpfd) ;
+
+    /* Command to be sent to gnuplot    */
+    strcpy(cmd, "splot") ;
+        
+    if (title == NULL) {
+        sprintf(line, "%s \"%s\" with %s", cmd, name, handle->pstyle) ;
+    } else {
+        sprintf(line, "%s \"%s\" title \"%s\" with %s", cmd, name,
+                      title, handle->pstyle) ;
+    }
+
+    /* send command to gnuplot  */
+    gnuplot_cmd(handle, line) ;
+    handle->nplots++ ;
+    return 0;
+}
+
+/*-------------------------------------------------------------------------*/
+/**
+  @brief	Plot a 3d graph from a grid of points.
+  @param	handle		Gnuplot session control handle.
+  @param	points		Pointer to a grid of points (rows,cols).
+  @param	rows       	Number of rows (y points).
+  @param	cols       	Number of columns (x points).
+  @param	title		Title of the plot.
+  @return	void
+
+  gnuplot_splot_grid(handle,(double*) points,rows,cols,title);
+  Based on gnuplot_splot, modifications by Robert Bradley 2/4/2006
+
+  Plots a 3d graph from a grid of points, passed in the form of a 2D array [x,y].
+ */
+/*--------------------------------------------------------------------------*/
+
+int gnuplot_splot_grid(gnuplot_ctrl *handle, double *points, int rows, int cols, char *title) {
+    int i;
+    int j;
+	int		tmpfd ;
+    char    name[128] ;
+    char    cmd[GP_CMD_SIZE] ;
+    char    line[GP_CMD_SIZE] ;
+
+    if (handle==NULL || points==NULL || (rows<1) || (cols<1)) return 1;
+    if (handle->nplots > 0)
+      return 1;
+    /* Open one more temporary file? */
+    if (handle->ntmp == GP_MAX_TMP_FILES - 1) {
+        fprintf(stderr,
+                "maximum # of temporary files reached (%d): cannot open more",
+                GP_MAX_TMP_FILES) ;
+        return 1;
+    }
+
+    /* Open temporary file for output   */
+	sprintf(name, GNUPLOT_TEMPFILE, P_tmpdir);
+    if ((tmpfd=mkstemp(name))==-1) {
+        fprintf(stderr,"cannot create temporary file: exiting plot") ;
+        return 1;
+    }
+    /* Store file name in array for future deletion */
+    strcpy(handle->to_delete[handle->ntmp], name) ;
+    handle->ntmp ++ ;
+
+    /* Write data to this file  */
+    for (i=0 ; i<rows; i++) {
+        for (j=0;j<cols;j++) {
+            sprintf(line, "%d %d %g\n", i,j,points[i*cols+j]) ;
+		    write(tmpfd, line, strlen(line));
+        }
+        strcpy(line,"\n");
+        write(tmpfd, line, strlen(line));
+    }
+    close(tmpfd) ;
+
+    /* Command to be sent to gnuplot    */
+    strcpy(cmd, "splot") ;
+        
+    if (title == NULL) {
+        sprintf(line, "%s \"%s\" with %s", cmd, name, handle->pstyle) ;
+    } else {
+        sprintf(line, "%s \"%s\" title \"%s\" with %s", cmd, name,
+                      title, handle->pstyle) ;
+    }
+
+    /* send command to gnuplot  */
+    gnuplot_cmd(handle, line) ;
+    handle->nplots++ ;
+    return 0;
+}
+
+/*-------------------------------------------------------------------------*/
+/**
+  @brief	Plot contours from a list of points.
+  @param	handle		Gnuplot session control handle.
+  @param	x			Pointer to a list of x coordinates. (length=nx*ny)
+  @param	y			Pointer to a list of y coordinates. (length=nx*ny)
+  @param	z			Pointer to a list of z coordinates. (length=nx*ny)
+  @param	nx			Number of doubles in x-direction
+  @param	ny			Number of doubles in y-direction
+  @param	title		Title of the plot.
+  @return	void
+
+  gnuplot_contour_plot(handle,x,y,z,n,title);
+  Based on gnuplot_splot, modifications by Robert Bradley 23/11/2005
+
+  Plots a contour plot from a list of points, passed in the form of three arrays x, y and z.
+  
+    @code
+    gnuplot_ctrl    *h ;
+	double x[50] ; y[50] ; z[50];
+    int i ;
+
+    h = gnuplot_init() ;
+    int count=100;
+    double x[count*count],y[count*count],z[count*count];
+    int i,j;
+    for (i=0;i<count;i++) {
+        for (j=0;j<count;j++) {
+            x[count*i+j]=i;
+            y[count*i+j]=j;
+            z[count*i+j]=1000*sqrt(square(i-count/2)+square(j-count/2));
+        }
+    }
+    gnuplot_setstyle(h,"lines");
+    gnuplot_contour_plot(h,x,y,z,count,count,"Points");
+    sleep(2) ;
+    gnuplot_close(h) ;
+  @endcode
+ */
+/*--------------------------------------------------------------------------*/
+
+int gnuplot_contour_plot(gnuplot_ctrl *handle, double *x, double *y, double *z, int nx, int ny, char *title) {
+    int i,j;
+	int		tmpfd ;
+    char    name[128] ;
+    char    cmd[GP_CMD_SIZE] ;
+    char    line[GP_CMD_SIZE] ;
+
+    if (handle==NULL || x==NULL || y==NULL || (nx<1) || (ny<1)) return 1;
+    if (handle->nplots > 0)
+      return 1;
+    /* Open one more temporary file? */
+    if (handle->ntmp == GP_MAX_TMP_FILES - 1) {
+        fprintf(stderr,
+                "maximum # of temporary files reached (%d): cannot open more",
+                GP_MAX_TMP_FILES) ;
+        return 1;
+    }
+
+    /* Open temporary file for output   */
+	sprintf(name, GNUPLOT_TEMPFILE, P_tmpdir);
+    if ((tmpfd=mkstemp(name))==-1) {
+        fprintf(stderr,"cannot create temporary file: exiting plot") ;
+        return 1;
+    }
+    /* Store file name in array for future deletion */
+    strcpy(handle->to_delete[handle->ntmp], name) ;
+    handle->ntmp ++ ;
+
+    /* Write data to this file  */
+    
+    for (i=0 ; i<nx; i++) {
+        for (j=0 ; j<ny; j++) {
+            sprintf(line, "%g %g %g\n", x[nx*i+j], y[nx*i+j], z[nx*i+j]) ;
+    		write(tmpfd, line, strlen(line));
+        }
+        sprintf(line, "\n") ;
+    	write(tmpfd, line, strlen(line));
+    }
+    close(tmpfd) ;
+
+    /* Command to be sent to gnuplot    */
+    gnuplot_cmd(handle,"unset surface");
+    gnuplot_cmd(handle,"set contour base");
+    gnuplot_cmd(handle,"set view map");
+    gnuplot_cmd(handle,"set view 0,0");
+    strcpy(cmd, "splot") ;
+        
+    if (title == NULL) {
+        sprintf(line, "%s \"%s\" with %s", cmd, name, handle->pstyle) ;
+    } else {
+        sprintf(line, "%s \"%s\" title \"%s\" with %s", cmd, name,
+                      title, handle->pstyle) ;
+    }
+
+    /* send command to gnuplot  */
+    gnuplot_cmd(handle, line) ;
+    handle->nplots++ ;
+    return 0;
+}
+
+/*-------------------------------------------------------------------------*/
+/**
+  @brief	Plot a 3d graph using callback functions to return the points
+  @param	handle		Gnuplot session control handle.
+  @param	obj			Pointer to an arbitrary object.
+  @param	getPoint	Pointer to a callback function.
+  @param	n			Number of doubles in x (y and z must be the the same).
+  @param	title		Title of the plot.
+  @return	void
+
+Calback:
+
+void getPoint(void *object,gnuplot_point *point,int index,int pointCount);
+  @param	obj			Pointer to an arbitrary object
+  @param	point		Pointer to the returned point struct (double x,y,z)
+  @param	i			Index of the current point (0 to n-1)
+  @param	n			Number of points
+  @return	void
+ */
+/*--------------------------------------------------------------------------*/
+
+int gnuplot_splot_obj(gnuplot_ctrl *handle,
+                      void *obj,
+                      void (*getPoint)(void*,gnuplot_point*,int,int),
+                      int n,
+                      char *title) {
+    int i;
+	int		tmpfd ;
+    char    name[128] ;
+    char    cmd[GP_CMD_SIZE] ;
+    char    line[GP_CMD_SIZE] ;
+
+    if (handle==NULL || getPoint==NULL || (n<1)) return 1;
+    if (handle->nplots > 0)
+      return 1;
+    /* Open one more temporary file? */
+    if (handle->ntmp == GP_MAX_TMP_FILES - 1) {
+        fprintf(stderr,
+                "maximum # of temporary files reached (%d): cannot open more",
+                GP_MAX_TMP_FILES) ;
+        return 1;
+    }
+
+    /* Open temporary file for output   */
+	sprintf(name, GNUPLOT_TEMPFILE, P_tmpdir);
+    if ((tmpfd=mkstemp(name))==-1) {
+        fprintf(stderr,"cannot create temporary file: exiting plot") ;
+        return 1;
+    }
+    /* Store file name in array for future deletion */
+    strcpy(handle->to_delete[handle->ntmp], name) ;
+    handle->ntmp ++ ;
+
+    /* Write data to this file  */
+    gnuplot_point point;
+    for (i=0;i<n;i++) {
+        getPoint(obj,&point,i,n);
+        sprintf(line, "%g %g %g\n", point.x, point.y, point.z) ;
+		write(tmpfd, line, strlen(line));
+    }
+    close(tmpfd) ;
+
+    /* Command to be sent to gnuplot    */
+    strcpy(cmd, "splot") ;
+        
+    if (title == NULL) {
+        sprintf(line, "%s \"%s\" with %s", cmd, name, handle->pstyle) ;
+    } else {
+        sprintf(line, "%s \"%s\" title \"%s\" with %s", cmd, name,
+                      title, handle->pstyle) ;
+    }
+
+    /* send command to gnuplot  */
+    gnuplot_cmd(handle, line) ;
+    handle->nplots++ ;
+    return 0;
+}
+
+/*
+  @brief	Plot a 2d graph using a callback function to return points.
+  @param	handle		Gnuplot session control handle.
+  @param	obj			Pointer to an arbitrary object.
+  @param	getPoint	Pointer to a callback function.
+  @param	n			Number of points.
+  @param	title		Title of the plot.
+  @return	void
+
+The callback function is of the following form, and is called once for each
+point plotted:
+    
+void getPoint(void *object,gnuplot_point *point,int index,int pointCount);
+  @param	obj			Pointer to an arbitrary object
+  @param	point		Pointer to the returned point struct (double x,y,z)
+  @param	i			Index of the current point (0 to n-1)
+  @param	n			Number of points
+  @return	void
+
+For example (where points is an array of points in this case):
+
+void PlotPoint(void *obj,gnuplot_point *point,int i, int n) {
+    Point *p=(Point*) obj;
+    point->x=p[i].x;
+    point->y=p[i].y;
+}
+
+int main(int argc, char *argv[]) {
+...
+gnuplot_plot_obj_xy(gp,points,PlotPoint,pCount,"Points");
+...
+}
+
+Alternately, PlotPoint could return values based on a complex formula and many
+sources of information.  For example, it could be used to perform a Discrete
+Fourier Transform on an array of complex numbers, calculating one transformed
+point per call.
+
+Note: you should always explicitly set all the relevant parts of the struct.
+However, you may ignore the z component for 2D plots.
+*/
+
+int gnuplot_plot_obj_xy(
+    gnuplot_ctrl *handle,
+    void *obj,
+    void (*getPoint)(void*,gnuplot_point*,int,int),
+    int n,
+    char *title
+)
+{
+    int     i ;
+	int		tmpfd ;
+    char    name[128] ;
+    char    cmd[GP_CMD_SIZE] ;
+    char    line[GP_CMD_SIZE] ;
+
+	if (handle==NULL || getPoint==NULL || (n<1)) return 1;
+
+    /* Open one more temporary file? */
+    if (handle->ntmp == GP_MAX_TMP_FILES - 1) {
+        fprintf(stderr,
+                "maximum # of temporary files reached (%d): cannot open more",
+                GP_MAX_TMP_FILES) ;
+        return 1;
+    }
+
+    /* Open temporary file for output   */
+	sprintf(name, GNUPLOT_TEMPFILE, P_tmpdir);
+    if ((tmpfd=mkstemp(name))==-1) {
+        fprintf(stderr,"cannot create temporary file: exiting plot") ;
+        return 1;
+    }
+    /* Store file name in array for future deletion */
+    strcpy(handle->to_delete[handle->ntmp], name) ;
+    handle->ntmp ++ ;
+
+    /* Write data to this file  */
+    gnuplot_point point;
+    for (i=0 ; i<n; i++) {
+        getPoint(obj,&point,i,n);
+        sprintf(line, "%g %g\n", point.x, point.y) ;
+		write(tmpfd, line, strlen(line));
+    }
+    close(tmpfd) ;
+
+    /* Command to be sent to gnuplot    */
+    if (handle->nplots > 0) {
+        strcpy(cmd, "replot") ;
+    } else {
+        strcpy(cmd, "plot") ;
+    }
+    
+    if (title == NULL) {
+        sprintf(line, "%s \"%s\" with %s", cmd, name, handle->pstyle) ;
+    } else {
+        sprintf(line, "%s \"%s\" title \"%s\" with %s", cmd, name,
+                      title, handle->pstyle) ;
+    }
+
+    /* send command to gnuplot  */
+    gnuplot_cmd(handle, line) ;
+    handle->nplots++ ;
+    return 0;
+}
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -579,7 +1133,7 @@ void gnuplot_plot_once(
 
 	if (x==NULL || n<1) return ;
 
-	if ((handle = gnuplot_init()) == NULL) return ;
+    if ((handle = gnuplot_init()) == NULL) return ;
 	if (style!=NULL) {
 		gnuplot_setstyle(handle, style);
 	} else {
@@ -617,6 +1171,7 @@ void gnuplot_plot_once(
   @param	b			Intercept.
   @param	title		Title of the plot.
   @return	void
+  @doc
 
   Plot a slope on a gnuplot session. The provided slope has an
   equation of the form y=ax+b
@@ -718,4 +1273,72 @@ void gnuplot_plot_equation(
     return ;
 }
 
-/* vim: set ts=4 et sw=4 tw=75 */
+/*-------------------------------------------------------------------------*/
+/**
+  @brief    Save a graph as a postscript file on the hard disk
+  @param    h           Gnuplot session control handle.
+  @param    equation    Equation to plot.
+  @param    title       Title of the plot.
+  @return   void
+
+  A wrapper for the gnuplot_cmd function that sets the terminal
+  the terminal to postscript, replots the raph and then resets
+  the terminal to x11.
+
+  Example:
+
+  @code
+        gnuplot_ctrl    *h ;
+        char            eq[80] ;
+
+        h = gnuplot_init() ;
+        strcpy(eq, "sin(x) * cos(2*x)") ;
+        gnuplot_plot_equation(h, eq, "sine wave", normal) ;
+        gnuplot_hardcopy(h, "sinewave.ps");
+        gnuplot_close(h) ;
+  @endcode
+ */
+/*--------------------------------------------------------------------------*/
+void gnuplot_hardcopy(
+    gnuplot_ctrl * h, 
+    char * filename
+)
+{
+    gnuplot_cmd(h, "set terminal postscript");
+
+    gnuplot_cmd(h, "set output \"%s\"", filename);
+    gnuplot_cmd(h, "replot");
+
+    gnuplot_cmd(h, "set terminal %s",h->term);
+}
+
+/*-------------------------------------------------------------------------*/
+/**
+  @brief    Save a graph in colour as a postscript file on the hard disk
+  @param    h           Gnuplot session control handle.
+  @param    equation    Equation to plot.
+  @param    title       Title of the plot.
+  @return   void
+
+  Added by Robert Bradley on 12th october 2004
+
+  This function is identical in syntax (and implementation) to gnuplot_hardcopy, but the resulting
+  PostScript file retains colour information.
+
+  */
+/*--------------------------------------------------------------------------*/
+
+void gnuplot_hardcopy_colour(
+    gnuplot_ctrl * h, 
+    char * filename
+)
+{
+    gnuplot_cmd(h, "set terminal postscript enhanced color");
+
+    gnuplot_cmd(h, "set output \"%s\"", filename);
+    gnuplot_cmd(h, "replot");
+
+    gnuplot_cmd(h, "set terminal %s",h->term);
+}
+
+#endif

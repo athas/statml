@@ -33,5 +33,5 @@ int main(int argv, char** argc){
 	}
 //	plot_viewbox(&plot,-1,3,-1,3);
 	printf("Output plot saved in folder :" TEX_OUT_DIR"\n\n");
-	figure2file(&plot,TEX_OUT_DIR"case11.tex");
+	figure2file(&plot,TEX_OUT_DIR"case1.tex");
 }

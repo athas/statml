@@ -7,9 +7,6 @@
 #define M_PI 3.1415926535897932384626433832795
 #endif
 
-typedef gsl_vector vect;
-typedef gsl_matrix mtrx;
-
 
 /* extent layout:
  * {xmin,xmax,ymin,ymax}*/
@@ -23,58 +20,6 @@ static inline double dmax(double a, double b){
 static inline double dmin(double a, double b){
 	return a < b ? a : b;}
 
-static double __pdf_map(pnm_img* img, vect* sigma, mtrx* cov, double** map){
-	double one_over = 1.0/pow(2*M_PI,3/2) * sqrt(matrix_determinant(cov));
-	double max = 0;
-	
-	mtrx* cov_inv = inverse_matrix(cov);
-	
-	vect* x = gsl_vector_alloc(3);
-	pnm_pixmap* pix = (pnm_pixmap*)img->pixels;
-	for (int i =0; i<img->width*img->height; i++,pix++) {
-		pix2vec(pix, x);
-		gsl_vector_sub(x,sigma);
-		*(*map+i) = pdf(x, cov_inv)*one_over;
-		max = dmax(max,*(*map+i));
-	}
-	gsl_matrix_free(cov_inv);
-	gsl_vector_free(x);
-	
-	return max;
-}
-
-pnm_img* img_pdf(pnm_img* img, vect* sigma, mtrx* cov){
-
-	pnm_img* out = pnm_create(img->width, img->height, BINARY_GREYMAP);
-	double* map = (double*)malloc(img->width*img->height*sizeof(double));
-	
-	double normalized = 1.0/__pdf_map(img, sigma,cov,&map);
-	
-	for (int i =0; i<img->width*img->height; i++) {
-		*((unsigned char*)out->pixels+i) = 0xff*normalized* (*(map+i));
-	}
-	
-	free (map);
-	return out;
-}
-
-mtrx* refined_img2train(pnm_img* img, vect* sigma, mtrx* cov){
-	double* map = (double*)malloc(img->width*img->height*sizeof(double));
-	int pos=0;
-	pnm_pixmap* pix = (pnm_pixmap*)img->pixels;
-	double max_norm = __pdf_map(img, sigma, cov, &map)*0.1; //30%
-	for (int i =0; i<img->width*img->height; i++){
-		if (*(map+i) > max_norm){
-			*(pix+pos++) = *(pix+i);
-		}
-	}
-	pnm_write(img, IMG_OUT_DIR"wtf.pnm");
-	img->width= pos;
-	img->height = 1;
-	free (map);
-
-	return img2train_set(img);
-}
 
 int main(int argv, char** argc){
 	printf("\n\nRunning code for question 1.9:\n\n");
@@ -122,6 +67,9 @@ int main(int argv, char** argc){
 	gsl_matrix_free(train_set2);
 	gsl_matrix_free(s_cov1);	
 	gsl_matrix_free(s_cov2);
+	gsl_matrix_free(ttrain_set1);
+	
+	
 	gsl_vector_free(s_mean1);
 	gsl_vector_free(s_mean2);
 	pnm_destroy(kande1);
@@ -130,4 +78,5 @@ int main(int argv, char** argc){
 	pnm_destroy(train_img2);
 	pnm_destroy(density1);
 	pnm_destroy(density2);
+	pnm_destroy(density3);
 }

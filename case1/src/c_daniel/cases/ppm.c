@@ -25,7 +25,7 @@ inline static int num_channels(int p){
 }
 
 void* pnm_get_pixel(pnm_img* img, int x, int y){
-  return ((char*)img->pixels)+(y*img->width+x)*num_channels(img->p);
+    return ((char*)img->pixels)+(y*img->width+x)*num_channels(img->p);
 }
 
 void pnm_set_pixel(pnm_img *img, int x, int y, void* pixel) {

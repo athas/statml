@@ -3,8 +3,8 @@
 /**
   @file		gnuplot_i.h
   @author	N. Devillard
-  @date		Sep 1998
-  @version	$Revision: 1.11 $
+  @date		Sep 1998, Oct 2004, Sept 2005, Nov 2005, Apr 2006
+  @version	$Revision: 1.11.3 $
   @brief	C interface to gnuplot.
 
   gnuplot is a freely available, command-driven graphical display tool for
@@ -12,6 +12,12 @@
   well as other operating systems. The following module enables sending
   display requests to gnuplot through simple C calls.
   
+  set_zlabel, splot and hardcopy_colour functions are based on existing code,
+  and added on 12 October 2004 by Robert Bradley (robert.bradley@merton.ox.ac.uk).
+  OS X and limited Windows support added 11-13th September 2005 - on Windows,
+  pgnuplot and wgnuplot.exe must be in the current directory.  
+  
+  gnuplot_splot_grid added 2nd April 2006 (R. Bradley).
 */
 /*--------------------------------------------------------------------------*/
 
@@ -19,7 +25,7 @@
 	$Id: gnuplot_i.h,v 1.11 2003/01/27 08:58:04 ndevilla Exp $
 	$Author: ndevilla $
 	$Date: 2003/01/27 08:58:04 $
-	$Revision: 1.11 $
+	$Revision: 1.11.2 $
  */
 
 #ifndef _GNUPLOT_PIPES_H_
@@ -34,7 +40,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdarg.h>
-
+#include <fcntl.h>
+#include <time.h>
 
 /** Maximal number of simultaneous temporary files */
 #define GP_MAX_TMP_FILES    64
@@ -69,12 +76,26 @@ typedef struct _GNUPLOT_CTRL_ {
     int       nplots ;
 	/** Current plotting style */
     char      pstyle[32] ;
+    /* Save terminal name (used by hardcopy functions) */
+    char      term[32] ;
 
     /** Name of temporary files */
     char      to_delete[GP_MAX_TMP_FILES][GP_TMP_NAME_SIZE] ;
 	/** Number of temporary files */
     int       ntmp ;
 } gnuplot_ctrl ;
+
+/*
+gnuplot_point: Simple point struct to allow return of points to the
+gnuplot_plot_obj_xy function by callback functions.
+*/
+
+typedef struct _GNUPLOT_POINT_ {
+    double x;
+    double y;
+    double z;
+} gnuplot_point;
+
 
 /*---------------------------------------------------------------------------
                         Function ANSI C prototypes
@@ -191,6 +212,20 @@ void gnuplot_setstyle(gnuplot_ctrl * h, char * plot_style);
 
 /*-------------------------------------------------------------------------*/
 /**
+  @brief	Change the terminal of a gnuplot session.
+  @param	h Gnuplot session control handle
+  @param	terminal Terminal name (character string)
+  @return	void
+
+  No attempt is made to check the validity of the terminal name.  This function
+  simply makes a note of it and calls gnuplot_cmd to change the name
+ */
+/*--------------------------------------------------------------------------*/
+
+void gnuplot_setterm(gnuplot_ctrl * h, char * terminal);
+
+/*-------------------------------------------------------------------------*/
+/**
   @brief    Sets the x label of a gnuplot session.
   @param    h Gnuplot session control handle.
   @param    label Character string to use for X label.
@@ -213,6 +248,18 @@ void gnuplot_set_xlabel(gnuplot_ctrl * h, char * label);
  */
 /*--------------------------------------------------------------------------*/
 void gnuplot_set_ylabel(gnuplot_ctrl * h, char * label);
+
+/*-------------------------------------------------------------------------*/
+/**
+  @brief    Sets the z label of a gnuplot session.
+  @param    h Gnuplot session control handle.
+  @param    label Character string to use for Z label.
+  @return   void
+
+  Sets the z label for a gnuplot session.
+ */
+/*--------------------------------------------------------------------------*/
+void gnuplot_set_zlabel(gnuplot_ctrl * h, char * label);
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -298,6 +345,146 @@ void gnuplot_plot_xy(
     char            *   title
 ) ;
 
+/*-------------------------------------------------------------------------*/
+/**
+  @brief    Plot a 3d graph from a list of points.
+  @param    handle      Gnuplot session control handle.
+  @param    x           Pointer to a list of x coordinates.
+  @param    y           Pointer to a list of y coordinates.
+  @param    z           Pointer to a list of z coordinates.
+  @param    n           Number of doubles in x (assumed the same as in y and z).
+  @param    title       Title of the plot.
+  @return   void
+
+  Plots out a 3d graph from a list of points. Provide points through lists
+  of x, y and z coordinates. Both provided arrays are assumed to contain the
+  same number of values.
+*/
+int gnuplot_splot(
+    gnuplot_ctrl    *   handle,
+    double          *   x,
+    double          *   y,
+    double          *   z,
+    int                 n,
+    char            *   title
+) ;
+
+/*-------------------------------------------------------------------------*/
+/**
+  @brief	Plot a 3d graph from a grid of points.
+  @param	handle		Gnuplot session control handle.
+  @param	points		Pointer to a grid of points (rows,cols).
+  @param	rows       	Number of rows (y points).
+  @param	cols       	Number of columns (x points).
+  @param	title		Title of the plot.
+  @return	void
+
+  gnuplot_splot_grid(handle,(double *) points,rows,cols,title);
+  Based on gnuplot_splot, modifications by Robert Bradley 2/4/2006
+
+  Plots a 3d graph from a grid of points, passed in the form of a 2D array [x,y].
+ */
+/*--------------------------------------------------------------------------*/
+
+int gnuplot_splot_grid(gnuplot_ctrl *handle, double *points, int rows, int cols, char *title);
+
+/*-------------------------------------------------------------------------*/
+/**
+  @brief	Plot contours from a list of points.
+  @param	handle		Gnuplot session control handle.
+  @param	x			Pointer to a list of x coordinates. (length=nx*ny)
+  @param	y			Pointer to a list of y coordinates. (length=nx*ny)
+  @param	z			Pointer to a list of z coordinates. (length=nx*ny)
+  @param	nx			Number of doubles in x-direction
+  @param	ny			Number of doubles in y-direction
+  @param	title		Title of the plot.
+  @return	void
+
+  gnuplot_contour_plot(handle,x,y,z,n,title);
+  Based on gnuplot_splot, modifications by Robert Bradley 23/11/2005
+
+  Plots a contour plot from a list of points, passed in the form of three arrays x, y and z.
+  
+    @code
+    gnuplot_ctrl    *h ;
+	double x[50] ; y[50] ; z[50];
+    int i ;
+
+    h = gnuplot_init() ;
+    int count=100;
+    double x[count*count],y[count*count],z[count*count];
+    int i,j;
+    for (i=0;i<count;i++) {
+        for (j=0;j<count;j++) {
+            x[count*i+j]=i;
+            y[count*i+j]=j;
+            z[count*i+j]=1000*sqrt(square(i-count/2)+square(j-count/2));
+        }
+    }
+    gnuplot_setstyle(h,"lines");
+    gnuplot_contour_plot(h,x,y,z,count,count,"Points");
+    sleep(2) ;
+    gnuplot_close(h) ;
+  @endcode
+ */
+/*--------------------------------------------------------------------------*/
+
+int gnuplot_contour_plot(gnuplot_ctrl *handle, double *x, double *y, double *z, int nx, int ny, char *title);
+
+/*-------------------------------------------------------------------------*/
+/**
+  @brief	Plot a 3d graph using callback functions to return the points
+  @param	handle		Gnuplot session control handle.
+  @param	obj			Pointer to an arbitrary object.
+  @param	getPoint	Pointer to a callback function.
+  @param	n			Number of doubles in x (y and z must be the the same).
+  @param	title		Title of the plot.
+  @return	void
+
+Calback:
+
+void getPoint(void *object,gnuplot_point *point,int index,int pointCount);
+  @param	obj			Pointer to an arbitrary object
+  @param	point		Pointer to the returned point struct (double x,y,z)
+  @param	i			Index of the current point (0 to n-1)
+  @param	n			Number of points
+  @return	void
+ */
+/*--------------------------------------------------------------------------*/
+
+int gnuplot_splot_obj(gnuplot_ctrl *handle,
+                      void *obj,
+                      void (*getPoint)(void*,gnuplot_point*,int,int),
+                      int n,
+                      char *title);
+
+/*
+  @brief	Plot a 2d graph using a callback function to return points.
+  @param	handle		Gnuplot session control handle.
+  @param	obj			Pointer to an arbitrary object.
+  @param	getPoint	Pointer to a callback function.
+  @param	n			Number of points.
+  @param	title		Title of the plot.
+  @return	void
+
+The callback function is of the following form, and is called once for each
+point plotted:
+    
+void getPoint(void *object,gnuplot_point *point,int index,int pointCount);
+  @param	obj			Pointer to an arbitrary object
+  @param	point		Pointer to the returned point struct (double x,y,z)
+  @param	i			Index of the current point (0 to n-1)
+  @param	n			Number of points
+  @return	void
+*/
+
+int gnuplot_plot_obj_xy(
+    gnuplot_ctrl *handle,
+    void *obj,
+    void (*getPoint)(void*,gnuplot_point*,int,int),
+    int n,
+    char *title
+);
 
 /*-------------------------------------------------------------------------*/
 /** 
@@ -337,6 +524,7 @@ void gnuplot_plot_once(
   @param    b           Intercept.
   @param    title       Title of the plot.
   @return   void
+  @doc
 
   Plot a slope on a gnuplot session. The provided slope has an
   equation of the form y=ax+b
@@ -386,5 +574,38 @@ void gnuplot_plot_slope(
  */
 /*--------------------------------------------------------------------------*/
 void gnuplot_plot_equation(gnuplot_ctrl * h, char * equation, char * title) ;
+
+
+
+/*-------------------------------------------------------------------------*/
+/**
+  @brief    Save a graph as a postscript file on the hard disk
+  @param    h           Gnuplot session control handle.
+  @param    equation    Equation to plot.
+  @param    title       Title of the plot.
+  @return   void
+
+  A wrapper for the gnuplot_cmd function that sets the terminal 
+  the terminal to postscript, replots the raph and then resets 
+  the terminal to x11.
+  
+  Example:
+
+  @code
+        gnuplot_ctrl    *h ;
+        char            eq[80] ;
+
+        h = gnuplot_init() ;
+        strcpy(eq, "sin(x) * cos(2*x)") ;
+        gnuplot_plot_equation(h, eq, "sine wave", normal) ;
+        gnuplot_hardcopy(h, "sinewave.ps");
+        gnuplot_close(h) ;
+  @endcode
+ */
+/*--------------------------------------------------------------------------*/
+void gnuplot_hardcopy(gnuplot_ctrl * h, char * filename);
+// gnuplot_hardcopy_colour added Oct 2004 by Robert Bradley
+void gnuplot_hardcopy_colour(gnuplot_ctrl * h, char * filename);
+
 
 #endif

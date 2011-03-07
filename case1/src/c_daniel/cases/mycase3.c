@@ -3,9 +3,6 @@
 
 #define NUM_SAMPLES 100
 
-typedef gsl_vector vect;
-typedef gsl_matrix mtrx;
-
 static inline double sample_fun(double rndn, double* covariance, double* mean){
 	return rndn*covariance[0]+rndn*covariance[1] + *mean;
 }
@@ -69,12 +66,12 @@ int main(int argv, char** argc){
 	init_figure(&plot,"Two-dimensional gaussian distribution","epslatex color colortext rounded");
 	plot.x_label = "X";
 	plot.y_label ="Y";
-	plot_x_y(&plot,ys,ys+NUM_SAMPLES,NUM_SAMPLES,"Generated $\\\\sigma$=1 $\\\\mu=(1,1)^T$", plot_style2str(ps_points));
+	plot_x_y(&plot,ys,ys+NUM_SAMPLES,NUM_SAMPLES,"Generated $\\\\sigma$=1 $\\\\mu=(1,1)^T$", plot_style2str(ps_dots));
 	plot_x_y(&plot,mean,mean+1,1,"Actual $\\\\mu$", plot_style2str(ps_points));
 	plot_x_y(&plot,meanML->data,meanML->data+1,1,"Sampled  $\\\\mu$",plot_style2str(ps_points));
 	
 	plot_viewbox(&plot,-1,3,-1,4);
 	
 	printf("Output plot saved in folder :" TEX_OUT_DIR"\n\n");
-	figure2file(&plot,TEX_OUT_DIR"case13.tex");
+	figure2file(&plot,TEX_OUT_DIR"case3.tex");
 }
