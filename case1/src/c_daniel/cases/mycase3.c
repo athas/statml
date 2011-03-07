@@ -66,7 +66,8 @@ int main(int argv, char** argc){
 	init_figure(&plot,"Two-dimensional gaussian distribution","epslatex color colortext rounded");
 	plot.x_label = "X";
 	plot.y_label ="Y";
-	plot_x_y(&plot,ys,ys+NUM_SAMPLES,NUM_SAMPLES,"Generated $\\\\sigma$=1 $\\\\mu=(1,1)^T$", plot_style2str(ps_dots));
+	plot_x_y(&plot,ys,ys+NUM_SAMPLES,NUM_SAMPLES,
+		"Generated $\\\\sigma$=1 $\\\\mu=(1,1)^T$", plot_style2str(ps_dots));
 	plot_x_y(&plot,mean,mean+1,1,"Actual $\\\\mu$", plot_style2str(ps_points));
 	plot_x_y(&plot,meanML->data,meanML->data+1,1,"Sampled  $\\\\mu$",plot_style2str(ps_points));
 	

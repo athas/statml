@@ -7,14 +7,6 @@
 #define M_PI 3.1415926535897932384626433832795
 #endif
 
-/* extent layout:
- * {xmin,xmax,ymin,ymax}*/
-
-	//#define IMG_IN_DIR "../../../img/"
-#define IMG_IN_DIR "/Volumes/commons/Projects/smml/statml/case1/img/"
-#define IMG_OUT_DIR "/Volumes/commons/Downloads/case9-10-11/case9-10-11/build/Debug/img_out/"
-
-
 static vect* weighted_avg_pos(pnm_img* img, double* map){
 	
 	double 	X = 0.0,

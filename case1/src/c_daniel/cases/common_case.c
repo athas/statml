@@ -1,7 +1,6 @@
 #include "common_case.h"
 #include <math.h>
 
-
 pnm_img* pnm_subimage(pnm_img* src, int* extent){
 	int width = extent[1] - extent[0];
 	int height = extent[3] - extent[2];

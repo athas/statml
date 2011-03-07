@@ -12,6 +12,9 @@
 #include <gsl/gsl_blas.h>
 
 #define TEX_OUT_DIR "tex_out/"
+#define IMG_IN_DIR "img/"
+#define IMG_OUT_DIR "img_out"
+
 
 typedef gsl_vector vect;
 typedef gsl_matrix mtrx;

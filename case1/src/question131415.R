@@ -5,7 +5,8 @@ mean <- c(1,1)
 covariance <- matrix(c(0.3, 0.2, 0.2, 0.2), 2, 2)
 
 ## Compute L such that t(L) %*% L == covariance.
-L <- chol(covariance)
+##see http://www.math.montana.edu/Rweb/Rhelp/chol.html
+L <- t(chol(covariance)) ## use the lower triangle not the upper
 
 gendata <- function(N) {
   xs <- c()
@@ -18,7 +19,7 @@ gendata <- function(N) {
 }
 
 ## Generate 100 random samples in xs
-xs <- gendata(100)
+xs <- gendata(N)
 x1s=xs[1,]
 x2s=xs[2,]
 
@@ -42,8 +43,8 @@ print(covarianceML)
 print("Sample mean:")
 print(meanML)
 print("L:")
+print(t(L))
 print(L)
-
 
 ## Question 1.3 plot
 pdf("../img/question13-plot.pdf")
