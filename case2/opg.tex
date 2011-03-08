@@ -6,6 +6,7 @@
 \usepackage{amsthm}
 \usepackage{ifthen}
 \usepackage{verbatim}
+\usepackage{multirow}
 
 % bedre orddeling Gør at der som minimum skal blive to tegn på linien ved
 % orddeling og minimum flyttes to tegn ned på næste linie. Desværre er værdien
@@ -90,5 +91,56 @@ Below is a close-up of the ML estimate and the MAP estimate.
 
 We see that the MAP estimate has a slightly smaller error when the
 prior precision is in the interval from roughly 0 to 500.
+
+\section*{Question 2}
+
+The code for this question is in \texttt{src/2.R}.
+
+\subsection*{Visualisation}
+\includegraphics[width=5cm]{img/question2-plot-a.pdf}
+\includegraphics[width=5cm]{img/question2-plot-b.pdf}
+\includegraphics[width=5cm]{img/question2-plot-c.pdf}
+
+\subsection*{LDA}
+
+Let class $\mathcal{C}_1$ be the class indexed by $1$ and
+$\mathcal{C}_2$ the class indexed by $-1$.  We have chosen to make use
+of Fisher's linear discriminant, as sescribed in section 4.1.4 in the
+textbook, implemented in R.  $y$ is classified as class
+$\mathcal{C}_1$ if $y\geq 0$ and otherwise class $\mathcal{C}_2$ -
+this threshold is based on the idea that we pick the class that our
+prediction is closest to.  The class dividers are visualised as purple
+lines in the plots.  The accuracy of the linear model is determined by
+counting the number of correct classifications proportional to the
+number of data points.
+
+\begin{tabular}{|l|l|l|}
+  \textbf{Trained with} & \textbf{Tested on} & \textbf{Accuracy} \\\hline
+  \multirow{2}{*}{KnollA} & Training set & 0.99 \\
+  & Testing set & 0.97 \\\hline
+  \multirow{2}{*}{KnollB} & Training set & 0.63 \\
+  & Testing set & 0.49 \\\hline
+  \multirow{2}{*}{KnollC} & Training set & 0.99 \\
+  & Testing set & 0.97 \\\hline
+\end{tabular}
+
+We note that the first coordinates in the KnollA and KnollC data sets
+are proportional by a factor of 100, hence their identical behaviour.
+This is visualised in the plot below.  Due to this similarity we will
+focus only on KnollA and KnollB.
+
+\includegraphics[width=5cm]{img/question2-plot-c-close.pdf}
+
+The difference in accuracy between the KnollA and KnollB data sets can
+be visualised by inspecting the distribution of points in KnollB.  It
+is immediately clear that there is no way to divide the
+two-dimensional plane with a straight line, such that we will obtain a
+satisfactory division of the points into their correct classes.  On
+the other hand, it is likely that a nonlinear method could construct a
+curve that would perform such a division, as the red points do seem to
+be clustered roughly in the middle.
+
+\includegraphics[width=5cm]{img/question2-plot-test-a.pdf}
+\includegraphics[width=5cm]{img/question2-plot-test-b.pdf}
 
 \end{document}
