@@ -6,10 +6,6 @@
 /* extent layout:
  * {xmin,xmax,ymin,ymax}*/
 
-//#define IMG_IN_DIR "../../../img/"
-#define IMG_IN_DIR "img_in/"
-#define IMG_OUT_DIR "img_out/"
-
 static inline double dmax(double a, double b){
 	return a > b ? a : b;}
 static inline double dmin(double a, double b){

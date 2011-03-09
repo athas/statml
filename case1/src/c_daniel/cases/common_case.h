@@ -12,7 +12,7 @@
 #include <gsl/gsl_blas.h>
 
 #define TEX_OUT_DIR "tex_out/"
-#define IMG_IN_DIR "img_in/"
+#define IMG_IN_DIR ""
 #define IMG_OUT_DIR "img_out/"
 
 
