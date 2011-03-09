@@ -7,6 +7,7 @@ static inline double sample_fun(double rndn, double* covariance, double* mean){
 	return rndn*covariance[0]+rndn*covariance[1] + *mean;
 }
 
+
 mtrx* generate_samples(int n_samples,vect* mean_mv, mtrx* L){
 	int dim = 2;
 	//init random, not randomly seeded
@@ -29,6 +30,7 @@ mtrx* generate_samples(int n_samples,vect* mean_mv, mtrx* L){
 	return smp;
 }
 
+
 int main(int argv, char** argc){
 	printf("\n\nRunning code for question 1.3:\n\n");
 
@@ -49,12 +51,12 @@ int main(int argv, char** argc){
 	vect* meanML = sample_mean(samples);
 	
 	printf("sampled mean:\n");
-	print_vec(meanML, "|%.5f|");
+	print_vec(meanML);
 	
 	//sample_cov
 	mtrx* covML = sample_cov(samples,&mean_mv.vector);
 	printf("sampled covariance matrix:\n");
-	print_mtrx(covML,  "%.5f |");
+	print_mtrx(covML);
 	
 	double ys[NUM_SAMPLES*2];
 	for (int i=0; i<NUM_SAMPLES; i++) {
@@ -67,8 +69,9 @@ int main(int argv, char** argc){
 	plot.x_label = "X";
 	plot.y_label ="Y";
 	plot_x_y(&plot,ys,ys+NUM_SAMPLES,NUM_SAMPLES,
-		"Generated $\\\\sigma$=1 $\\\\mu=(1,1)^T$", plot_style2str(ps_dots));
-	plot_x_y(&plot,mean,mean+1,1,"Actual $\\\\mu$", plot_style2str(ps_points));
+		"Generated $\\\\sigma$=1 $\\\\mu=(1,1)^T$", "points 1 6");
+	
+	plot_x_y(&plot,mean,mean+1,1,"Actual $\\\\mu$", "points 1 6");
 	plot_x_y(&plot,meanML->data,meanML->data+1,1,"Sampled  $\\\\mu$",plot_style2str(ps_points));
 	
 	plot_viewbox(&plot,-1,3,-1,4);

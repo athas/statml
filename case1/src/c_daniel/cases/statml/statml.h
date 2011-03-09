@@ -29,10 +29,16 @@ gsl_matrix* sample_cov(gsl_matrix* samples, gsl_vector* meanML);
 
 gsl_matrix* inverse_matrix(gsl_matrix* input);
 
-void print_mtrx(gsl_matrix* src, char* dbl_fmt);
+void print_mtrx(gsl_matrix* src);
 	
-void print_vec(gsl_vector* src, char* dbl_fmt);
+void print_vec(gsl_vector* src);
 	
+void mtrx2tex(gsl_matrix*,char* cmd_name, FILE* fp);
+
+void vect2tex_trans(gsl_vector* src,char* cmd_name, FILE* fp);
+
+void vect2tex(gsl_vector* src,char* cmd_name, FILE* fp);
+
 #ifdef __cplusplus
 }
 #endif

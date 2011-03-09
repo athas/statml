@@ -3,17 +3,8 @@
 #include <stdio.h>
 #include <math.h>
 
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
-#endif
-
-
 /* extent layout:
  * {xmin,xmax,ymin,ymax}*/
-
-//#define IMG_IN_DIR "../../../img/"
-#define IMG_IN_DIR "img_in/"
-#define IMG_OUT_DIR "img_out/"
 
 static inline double dmax(double a, double b){
 	return a > b ? a : b;}
@@ -44,32 +35,23 @@ int main(int argv, char** argc){
 			* s_cov2 = sample_cov(train_set2, s_mean2);
 	
 	pnm_img	* density1 = img_pdf(kande1, s_mean1, s_cov1),
-			*density2 = img_pdf(kande2, s_mean2, s_cov2);
+			*density2 = img_pdf(kande2, s_mean1, s_cov1);
 
-	mtrx	* ttrain_set1 = refined_img2train(train_img1, s_mean1, s_cov1);
-	vect	* tt_mean1 = sample_mean(ttrain_set1);
-	mtrx	* tt_cov1 = sample_cov(ttrain_set1, tt_mean1);
-	pnm_img	* density3 = img_pdf(kande1, tt_mean1, tt_cov1);
-	pnm_write(density3, IMG_OUT_DIR"tt_res1.pnm");
-	
 	pnm_write(train_img1, IMG_OUT_DIR"train_set1.pnm");
 	
 	printf("Output images saved in folder :" IMG_OUT_DIR"\n\n");
-	pnm_write(density1, IMG_OUT_DIR "train_img1.pnm");
-	pnm_write(density2, IMG_OUT_DIR "train_img2.pnm");
+	pnm_write(density1, IMG_OUT_DIR "case9probmap1.pnm");
+	pnm_write(density2, IMG_OUT_DIR "case9probmap2.pnm");
+	
+	FILE* fp = fopen(TEX_OUT_DIR"c9.tex", "w");
 	
 	printf("sample mean1:\n");
-	print_vec(s_mean1, "|%.5f|\n");
+	vect2tex(s_mean1, "cninesmean",fp);
 	printf("sample cov1:\n");
-	print_mtrx(s_cov1, "%.5f |");
+	mtrx2tex(s_cov1, "cninescov", fp);
 	
-	gsl_matrix_free(train_set1);
-	gsl_matrix_free(train_set2);
-	gsl_matrix_free(s_cov1);	
-	gsl_matrix_free(s_cov2);
-	gsl_matrix_free(ttrain_set1);
-	
-	
+	fclose(fp);
+		
 	gsl_vector_free(s_mean1);
 	gsl_vector_free(s_mean2);
 	pnm_destroy(kande1);
@@ -78,5 +60,5 @@ int main(int argv, char** argc){
 	pnm_destroy(train_img2);
 	pnm_destroy(density1);
 	pnm_destroy(density2);
-	pnm_destroy(density3);
+//	pnm_destroy(density3);
 }
