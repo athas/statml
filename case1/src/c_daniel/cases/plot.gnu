@@ -41,10 +41,3 @@ set multiplot
 splot 'tex_out/case11.kande2.gnuplot.dat' using 1:2:3:4:5:6 with rgbimage notitle;
 splot "tex_out/case11.pdf.gnuplot.dat" using 1:2:3 with lines notitle
 unset multiplot
-
-##case11.ekstra
-set output 'tex_out/case11_ekstra.pdf'
-set multiplot
-splot 'tex_out/case11.kande22.gnuplot.dat' using 1:2:3:4:5:6 with rgbimage notitle;
-splot "tex_out/case11.pdf2.gnuplot.dat" using 1:2:3 with lines notitle
-unset multiplot
