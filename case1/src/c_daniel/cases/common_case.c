@@ -94,7 +94,7 @@ pnm_img* img_pdf(pnm_img* img, vect* sigma, mtrx* cov){
 	return out;
 }
 
-mtrx* refined_img2train(pnm_img* img, vect* sigma, mtrx* cov){
+/*mtrx* refined_img2train(pnm_img* img, vect* sigma, mtrx* cov){
 	double* map = (double*)malloc(img->width*img->height*sizeof(double));
 	int pos=0;
 	pnm_pixmap* pix = (pnm_pixmap*)img->pixels;
@@ -109,4 +109,93 @@ mtrx* refined_img2train(pnm_img* img, vect* sigma, mtrx* cov){
 	free (map);
 	
 	return img2train_set(img);
+}
+*/
+
+
+void gplot_img2splot(pnm_img* img, double Z, char* fname){
+	FILE* fp;
+	fp = fopen(fname, "w");
+	pnm_pixmap* pix = (pnm_pixmap*)img->pixels;
+	
+	for (int iy=1; iy<=img->height; iy++){
+		for (int ix=0; ix<img->width; ix++){
+			int pos = ix+(img->height-iy)*img->width;
+			fprintf(fp, "%d %d %f %d %d %d\n", 
+				ix,iy, Z,
+				(pix+pos)->R,(pix+pos)->G,(pix+pos)->B);
+		}
+		fprintf(fp, "\n");
+	}
+	fclose(fp);
+}
+
+void gplot_pdf2splot(vect* mean, mtrx* cov, pnm_img* img, int skip, char* fname){
+	
+	FILE* fp;
+	fp = fopen(fname, "w");
+
+	double Z = 1.0/( (2*M_PI) * sqrt(matrix_determinant(cov)));
+	mtrx* cov_inv = inverse_matrix(cov);
+	vect* x = gsl_vector_alloc(2);
+		// working mtrx for pdf()
+	gsl_matrix* tmp = gsl_matrix_alloc(1, x->size);
+	
+	for (int iy=1; iy<=img->height; iy+=skip){
+		for (int ix=0; ix<img->width; ix+=skip){
+			gsl_vector_set(x, 0, ix);
+			gsl_vector_set(x, 1, img->height-iy);
+			gsl_vector_sub(x,mean);
+			fprintf(fp, "%d %d %.16f \n", 
+					ix,iy,Z * pdf(x, cov_inv, tmp));
+		}
+		fprintf(fp, "\n");
+	}
+	fclose(fp);
+}
+
+
+
+vect* weighted_avg_pos(pnm_img* img, double* map){
+	
+	double 	X = 0.0,
+	Y = 0.0;
+	double 	sum = 0.0;
+	
+	vect* output = gsl_vector_alloc(2);
+	for (int iy =0; iy<img->height; iy++){
+		for (int ix=0; ix<img->width; ix++){
+			int pos = ix+iy*img->width;
+			X+= ix*(*(map+pos));
+			Y+= iy*(*(map+pos));
+			sum+=*(map+pos);
+		}
+	}
+	X /= sum;
+	Y /= sum;
+	
+	gsl_vector_set(output, 0, X);
+	gsl_vector_set(output, 1, Y);
+	
+	return output;
+}
+
+mtrx* weighted_2dcov(double* weights, vect* s_mean, pnm_img* img){
+	gsl_matrix* tmp_mm = gsl_matrix_alloc(2, 1);
+	gsl_matrix* covML = gsl_matrix_alloc(2,2);
+	gsl_matrix_set_zero(covML);
+	double sum = 0.0;
+	for (int iy =0; iy<img->height; iy++){
+		for (int ix=0; ix<img->width; ix++){
+			int pos = ix+iy*img->width;	
+			sum+=weights[pos];
+			gsl_matrix_set(tmp_mm, 0, 0, ix - *s_mean->data);
+			gsl_matrix_set(tmp_mm, 1, 0, iy -*s_mean->data+1);
+			gsl_blas_dgemm(CblasNoTrans,CblasTrans,
+						   weights[pos], tmp_mm, tmp_mm,
+						   1, covML);
+		}
+	}
+	gsl_matrix_scale(covML, 1.0/sum);
+	return covML;
 }

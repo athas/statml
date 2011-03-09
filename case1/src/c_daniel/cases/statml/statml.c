@@ -80,19 +80,50 @@ double matrix_determinant(gsl_matrix* input){
 	return output;
 }
 
-void print_mtrx(gsl_matrix* src, char* dbl_fmt){
+void print_mtrx(gsl_matrix* src){
 	char dbl_str[128];
+	
+	printf("%8s","");
+	for (int i = 0; i < src->size2;i++){
+		sprintf(dbl_str,"[%d,]",i);
+		printf("%10s",dbl_str);
+	}
+	printf("\n");
 	for (int y=0; y< src->size1;y++){
+		sprintf(dbl_str,"[%d,]",y);
+		printf("%8s",dbl_str);
 		for (int x=0; x<src->size2; x++){
-			snprintf(dbl_str, 128, dbl_fmt, gsl_matrix_get(src, y, x));
-			printf("%s",dbl_str);
+			printf(" %.6f,", gsl_matrix_get(src, y, x));
 		}
 		printf("\n");
 	}
 }
 
-void print_vec(gsl_vector* src, char* dbl_fmt){
-	gsl_matrix_view mview = gsl_matrix_view_vector(src, 1, src->size);
-	print_mtrx(&mview.matrix,dbl_fmt);
+void print_vec(gsl_vector* src){
+	gsl_matrix_view mview = gsl_matrix_view_vector(src, src->size,1);
+	print_mtrx(&mview.matrix);
+}
+
+void mtrx2tex(gsl_matrix* src, char* cmd_name, FILE* fp){
+	fprintf(fp,"\\newcommand{\\%s}{\\[\\begin{pmatrix}\n", cmd_name);
+	
+	for (int y=0; y< src->size1;y++){
+		for (int x=0; x<src->size2; x++){
+			fprintf(fp," %.6f %s", gsl_matrix_get(src, y, x),
+			x+1==src->size2?"":"&");
+		}
+		fprintf(fp,"\\\\\n");
+	}
+	fprintf(fp,"\\end{pmatrix}\\]}\n\n");
+}
+
+void vect2tex_trans(gsl_vector* src, char* cmd_name, FILE* fp){
+	gsl_matrix_view mv = gsl_matrix_view_vector(src,src->size,1);
+	mtrx2tex(&mv.matrix,cmd_name,fp);
+}
+
+void vect2tex(gsl_vector* src, char* cmd_name, FILE* fp){
+	gsl_matrix_view mv = gsl_matrix_view_vector(src,1,src->size);
+	mtrx2tex(&mv.matrix,cmd_name,fp);
 }
 

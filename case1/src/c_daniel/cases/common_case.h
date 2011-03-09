@@ -12,8 +12,8 @@
 #include <gsl/gsl_blas.h>
 
 #define TEX_OUT_DIR "tex_out/"
-#define IMG_IN_DIR "img/"
-#define IMG_OUT_DIR "img_out"
+#define IMG_IN_DIR "img_in/"
+#define IMG_OUT_DIR "img_out/"
 
 
 typedef gsl_vector vect;
@@ -33,6 +33,14 @@ double pdf_map(pnm_img* img, vect* sigma, mtrx* cov, double** map);
 pnm_img* img_pdf(pnm_img* img, vect* sigma, mtrx* cov);
 
 mtrx* refined_img2train(pnm_img* img, vect* sigma, mtrx* cov);
+
+void gplot_img2splot(pnm_img* img, double Z, char* fname);
+
+void gplot_pdf2splot(vect* mean, mtrx* cov, pnm_img* img, int skip, char* fname);
+
+vect* weighted_avg_pos(pnm_img* img, double* map);
+
+mtrx* weighted_2dcov(double* weights, vect* s_mean, pnm_img* img);
 
 	
 #endif /* end of include guard: MYCASE_1_H_GUARD */
