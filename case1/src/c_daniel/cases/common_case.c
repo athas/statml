@@ -112,6 +112,19 @@ pnm_img* img_pdf(pnm_img* img, vect* sigma, mtrx* cov){
 }
 */
 
+void gplot_knn2plot(mtrx* coords, char* fname){
+	FILE* fp;
+	fp = fopen(fname, "w");
+	pnm_pixmap* pix = (pnm_pixmap*)img->pixels;
+	
+	for (int i = 0; i< coords->size1; i++){
+			fprintf(fp, "%f %f\n", 
+			gsl_matrix_get(coords, i,0),
+			gsl_matrix_get(coords, i,1));
+		}
+	}
+	fclose(fp);
+}
 
 void gplot_img2splot(pnm_img* img, double Z, char* fname){
 	FILE* fp;
