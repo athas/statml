@@ -19,6 +19,7 @@ typedef gsl_matrix mtrx;
 
 typedef struct {
 	int offset;
+  int value;
 	double sq_dist;
 } keighbor_t;
 
@@ -26,7 +27,11 @@ typedef struct {
 
 mtrx *read_knoll(const char file_name[]);
 
-keighbor_t* k_nearest(int k, vect* subj, mtrx* others);
+keighbor_t* k_nearest(int k, vect* subj, mtrx* others,keighbor_t* nearest, double(map_fun)(vect*,vect*,int));
+
+double knn_knoll_rms(mtrx* train, mtrx* test, int K,double(map_fun)(vect*,vect*,int));
+
+void gplot_knn2plot(mtrx* coords, char* fname);
 
 	
 #endif /* end of include guard: COMMON_CASE_1_H_GUARD */
