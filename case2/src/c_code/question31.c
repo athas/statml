@@ -5,8 +5,6 @@
 /* extent layout:
  * {xmin,xmax,ymin,ymax}*/
 
-#define ABS_PATH "/Volumes/MacOS/Users/drxl/Projects/smml/statml/case2/Data/"
-
 static double sq_dist(vect* v1, vect* v2, int lim){
   double  sum = 0,
   tmp;
@@ -33,32 +31,32 @@ int main(int argv, char** argc){
 	printf("\n\nRunning code for question 3.1:\n\n");
 
   printf("running set A\n");
-	mtrx* train_set = read_knoll(ABS_PATH"knollA-train.dt"),
-      * test_set  = read_knoll(ABS_PATH"knollA-test.dt");
+	mtrx* train_set = read_knoll(DATA_PATH"knollA-train.dt"),
+      * test_set  = read_knoll(DATA_PATH"knollA-test.dt");
     
   for (int ik = 1; ik<=9; ik+=2){
     double RMS = knn_knoll_rms(train_set, test_set, ik, sq_dist);
-    printf("K = %d RMS == %f\n", ik, RMS);
+    printf("K = %d missrate == %.2f%%\n", ik, RMS*100);
   }
   gsl_matrix_free(train_set);
   gsl_matrix_free(test_set);
   
   printf("running set B\n");
-  train_set = read_knoll(ABS_PATH"knollB-train.dt"),
-  test_set  = read_knoll(ABS_PATH"knollB-test.dt");
+  train_set = read_knoll(DATA_PATH"knollB-train.dt"),
+  test_set  = read_knoll(DATA_PATH"knollB-test.dt");
   for (int ik = 1; ik<=9; ik+=2){
     double RMS = knn_knoll_rms(train_set, test_set, ik,sq_dist);
-    printf("K = %d RMS == %f\n", ik, RMS);
+    printf("K = %d missrate == %.2f%%\n", ik, RMS*100);
   }
   gsl_matrix_free(train_set);
   gsl_matrix_free(test_set);
   
   printf("running set C\n");
-  train_set = read_knoll(ABS_PATH"knollC-train.dt"),
-  test_set  = read_knoll(ABS_PATH"knollC-test.dt");
+  train_set = read_knoll(DATA_PATH"knollC-train.dt"),
+  test_set  = read_knoll(DATA_PATH"knollC-test.dt");
   for (int ik = 1; ik<=9; ik+=2){
     double RMS = knn_knoll_rms(train_set, test_set, ik,sq_dist);
-    printf("K = %d RMS == %f\n", ik, RMS);
+    printf("K = %d missrate == %.2f%%\n", ik, RMS*100);
   }
   gsl_matrix_free(train_set);
   gsl_matrix_free(test_set);

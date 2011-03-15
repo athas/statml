@@ -9,10 +9,8 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
 
-#define TEX_OUT_DIR "tex_out/"
-#define IMG_IN_DIR ""
-#define IMG_OUT_DIR "img_out/"
-
+#define DATA_PATH "../../Data/"
+#define FIG_OUT "fig_out/"
 
 typedef gsl_vector vect;
 typedef gsl_matrix mtrx;

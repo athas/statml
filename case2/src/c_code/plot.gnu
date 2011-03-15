@@ -1,43 +1,42 @@
 #set terminal epslatex solid color colortext  size 15cm,15cm
-set terminal pdf solid color size 13.2cm, 15cm
+set terminal pdf solid color size 10cm, 10cm
 
-set xrange [ 0.0000 : 480.0000 ] 
-set yrange [ 0.0000 :  640.0000] 
-set zrange [ 0.0000 :  1] 
+set xrange [-3:3]
+set yrange [-3:3]
+ry(v) = v==1?16711680:16776960
+bb(v) = v==1?0:255
 
-set samples 100
-set view map
-unset surface
-set contour base
 
-set size ratio 1.333
-set bmargin at screen .1
-set tmargin at screen .95
-set lmargin at screen .01
-
-set cntrparam bspline
-#set cntrparam levels discrete 0.001,20,300, 600
-set cntrparam levels auto 10
-set isosamples 100
-
-#set key default
-set key box
-set key at 540,630
-#set key out vert
-
-set output 'tex_out/case10.pdf'
+set output 'fig_out/setA.pdf'
 set multiplot
-##case10
+plot '../../Data/knollA-test.dt.ln' using 1:2:(ry($3)) with points pt 6 ps 1 lc rgb variable, \
+'' using 1:2:(sprintf("%d",$4)) with labels
 
-
-splot 'tex_out/case10.kande1.gnuplot.dat' using 1:2:3:4:5:6 with rgbimage notitle;
-splot "tex_out/case10.pdf.gnuplot.dat" using 1:2:3 with lines notitle
-
+plot '../../Data/knollA-train.dt' using 1:2:(bb($3)) with points pt 6 ps 1 lc rgb variable
 unset multiplot
 
-##case11
-set output 'tex_out/case11.pdf'
+set output 'fig_out/setB.pdf'
 set multiplot
-splot 'tex_out/case11.kande2.gnuplot.dat' using 1:2:3:4:5:6 with rgbimage notitle;
-splot "tex_out/case11.pdf.gnuplot.dat" using 1:2:3 with lines notitle
+plot '../../Data/knollB-test.dt' using 1:2:(ry($3)) with points pt 6 ps 1 lc rgb variable
+#'' using 1:2:(sprintf("%d",$4)) with labels
+
+plot '../../Data/knollB-train.dt' using 1:2:(bb($3)) with points pt 6 ps 1 lc rgb variable
+unset multiplot
+
+set output 'fig_out/setC.pdf'
+set multiplot
+plot '../../Data/knollC-test.dt' using 1:2:(ry($3)) with points pt 6 ps 1 lc rgb variable
+#'' using 1:2:(sprintf("%d",$4)) with labels
+
+plot '../../Data/knollC-train.dt' using 1:2:(bb($3)) with points pt 6 ps 1 lc rgb variable
+unset multiplot
+
+
+set xrange [1:100]
+set yrange [0:20]
+
+set output 'fig_out/q33.pdf'
+set multiplot
+plot 'q33.dat' using 1:2 with lines
+plot 'q33.dat' using 1:3 with lines 
 unset multiplot

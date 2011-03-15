@@ -153,16 +153,15 @@ double knn_knoll_rms(mtrx* train, mtrx* test, int K, double(dist_fun)(vect*,vect
     int trained = knn_knoll_train(cknn, &subj.vector, K);
     int actual = (int)*(subj.vector.data+test->size2-1);
     //special case for knolls where distance will always be 0 or abs(2)
-//    RMS_SQ += trained == actual?0:4;
+    RMS_SQ += trained == actual?0:1;
 //    if (trained != actual)
 //      printf("mispredict at index: %d\n", i);
-    RMS_SQ += (trained - actual)*(trained - actual); 
+//    RMS_SQ += (trained - actual)*(trained - actual); 
   }
   free(cknn);
   double meanRMS = RMS_SQ/(double)test->size1;
-  return sqrt(meanRMS);
+  return meanRMS;
 }
-
 
 void gplot_knn2plot(mtrx* coords, char* fname){
 	FILE* fp;
