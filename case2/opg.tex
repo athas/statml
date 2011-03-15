@@ -7,6 +7,7 @@
 \usepackage{ifthen}
 \usepackage{verbatim}
 \usepackage{multirow}
+\renewcommand{\rmdefault}{ugm}
 
 % bedre orddeling Gør at der som minimum skal blive to tegn på linien ved
 % orddeling og minimum flyttes to tegn ned på næste linie. Desværre er værdien
@@ -146,12 +147,13 @@ be clustered roughly in the middle.
 \newpage
 \section*{Question 3.2}
 
-We check that the given metric fulfills the four requirements for a metric.
+We check that the given metric fulfills the four requirements for a
+metric, utilising the properties of norms.
 
 \begin{enumerate}
 \item $d(\bold{x},\bold{z}) \geq 0$ (non-negativity): As a norm
   $||\cdot||$ is always non-negative, this property is immediate.
-\item $d(\bold{x},\bold{z}) = 0 \Leftrightarrow x=z$ (identity of
+\item $d(\bold{x},\bold{z}) = 0 \Leftrightarrow \bold{x}=\bold{z}$ (identity of
   indiscernibles): The norm $||\bold{Mx}-\bold{Mz}||$ is only zero if
   $\bold{Mx}-\bold{Mz}=\bold{0}$ (by the definition of a norm), which
   is again only the case if $\bold{x}=\bold{z}$.  Holds in both
@@ -161,8 +163,8 @@ We check that the given metric fulfills the four requirements for a metric.
     d(\bold{x},\bold{z})&=||\bold{Mx}-\bold{Mz}||&\text{(By def.)} \\
     &=||\bold{Mx}+(-1)\bold{Mz}||&\text{(Rewriting)} \\
     &=||(-1)\bold{Mz}+\bold{Mx}||&\text{(Commutativity of addition)} \\
-    &=|-1|||\bold{Mz}+\bold{Mx}||&\text{(Positive homogeneity of norms)} \\
-    &=||\bold{Mz}+\bold{Mx}||&\text{(Multiplication by one)} \\
+    &=|-1|||(-1)\bold{Mz}+\bold{Mx}||&\text{(Multiplying by one)} \\
+    &=||\bold{Mz}-\bold{Mx}||&\text{(Positive homogeneity of norms)} \\
     &=d(\bold{z},\bold{x})&\text{(By def.)}
 \end{align*}
 \item $d(\bold{x}, \bold{z}) \leq d(\bold{x}, \bold{y}) + d(\bold{y},
@@ -172,6 +174,6 @@ We check that the given metric fulfills the four requirements for a metric.
     ||\bold{Mx}-\bold{Mz}|| &\leq ||\bold{Mx}-\bold{My}|| + ||\bold{My}-\bold{Mz}||&\text{(Simplifying terms)}\\
     d(\bold{x}, \bold{z}) &\leq d(\bold{x}, \bold{y}) + d(\bold{y}, \bold{z})&\text{(By def.)}
   \end{align*}
-\end{enumerate}
+\end{enumerate}\qed
 
 \end{document}
