@@ -1,7 +1,7 @@
 CXX = gcc
 CXX_ARGS = -Wall -g -std=c99 -fopenmp
 DEPS=statml.c common_case.c
-LIBRARIES =`gsl-config --libs` gnuplot_i.c $(DEPS)
+LIBRARIES =`gsl-config --libs` $(DEPS)
 OUT_DIRS=fig_out
 BASENAME=question
 ALL_OUTS=$(BASENAME)31 $(BASENAME)32 
