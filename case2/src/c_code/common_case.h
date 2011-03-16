@@ -22,12 +22,14 @@ typedef struct {
 } keighbor_t;
 
 
+typedef double(dist_fun_t)(vect*,vect*,int);
 
 mtrx *read_knoll(const char file_name[]);
 
-keighbor_t* k_nearest(int k, vect* subj, mtrx* others,keighbor_t* nearest, double(map_fun)(vect*,vect*,int));
+void k_nearest(int k, vect* test_subj, mtrx* cohorte,keighbor_t* output, 
+               dist_fun_t dist_fun_pointer);
 
-double knn_knoll_rms(mtrx* train, mtrx* test, int K,double(map_fun)(vect*,vect*,int));
+double knn_knoll_hitrate(mtrx* train, mtrx* test, int K, dist_fun_t);
 
 void gplot_knn2plot(mtrx* coords, char* fname);
 

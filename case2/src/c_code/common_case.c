@@ -15,8 +15,6 @@ static inline int read_line(char* buffer, const int max_size, FILE* fp){
 		return 0;
 }
 
-
-
 static void path_error(const char* file_name){
 	char path[512];
 	getcwd(path, 512);
@@ -65,7 +63,6 @@ gsl_matrix* read_knoll(const char file_name[]){
 	return out;
 }
 
-
 static inline int max_offset(int k, keighbor_t* cknn){
 	int max=cknn->sq_dist;
 	for (int i = 0;i<k;i++)
@@ -73,38 +70,44 @@ static inline int max_offset(int k, keighbor_t* cknn){
 			max = i;
 	return max;
 }
-/*
-static void test_nearest(int k, keighbor_t* cknn,vect* subj, mtrx* others, vect* wrk, int cur_max){
+
+static inline int knn_in_nearest(int subj, int K, keighbor_t* cknn){
+  for(int i = 0; i < K; i++)
+    if(subj == (cknn+i)->offset)
+      return 1;
+  return 0;
+}
+
+static void test_nearest(int k, keighbor_t* cknn,vect* subj, mtrx* others, vect* wrk, int cur_max, dist_fun_t d_fun){
   int max = max_offset(k, cknn);
   if(max != cur_max)
     printf("Differs on max inside nearest! old: %d new: max%d\n", (cknn+max)->offset, (cknn +cur_max)->offset);
   
   for (int i = 0; i < others->size1; i++) {
 		gsl_vector_view row=gsl_vector_view_array(others->data+i*others->tda,subj->size);
-		double tmp = sq_dist(subj, &row.vector, 2);
-		if (tmp	<= (cknn+max)->sq_dist){
+		double tmp = d_fun(subj, &row.vector,k);
+		if (tmp	<= (cknn+max)->sq_dist && !knn_in_nearest(i, k, cknn)){
       printf("found lower NN at %d\n", i);
 		}
 	}
-}*/
+}
 
 
-keighbor_t* k_nearest(int k, vect* subj, mtrx* others,keighbor_t* nearest, double(dist_fun)(vect*,vect*,int)){
+void k_nearest(int k, vect* subj, mtrx* others,keighbor_t* nearest, dist_fun_t d_fun){
 	int n = others->size1;
   
 	double tmp;	
 	for (int i =0; i<k; i++){
     gsl_vector_view row=gsl_vector_view_array(others->data+i*others->tda,subj->size);
-		(nearest+i)->sq_dist = dist_fun(subj, &row.vector, 2);
+		(nearest+i)->sq_dist = d_fun(subj, &row.vector, 2);
 		(nearest+i)->offset = i;
     (nearest+i)->value = gsl_vector_get(&row.vector,others->size2-1);
 	}
   int cur_max = max_offset(k, nearest);
 
-  
 	for (int i = k; i < n; i++) {
 		gsl_vector_view row=gsl_vector_view_array(others->data+i*others->tda,others->size2);
-		tmp = dist_fun(subj, &row.vector, 2);
+		tmp = d_fun(subj, &row.vector, 2);
 		if (tmp	<= (nearest+cur_max)->sq_dist){
       (nearest+cur_max)->sq_dist = tmp;
       (nearest+cur_max)->offset = i;
@@ -112,7 +115,9 @@ keighbor_t* k_nearest(int k, vect* subj, mtrx* others,keighbor_t* nearest, doubl
 			cur_max = max_offset(k, nearest);
 		}
 	}
-  //test_nearest(k, nearest,subj, others, wrk,cur_max);
+#ifdef SANITYCHECK
+  test_nearest(k, nearest,subj, others, wrk,cur_max, d_fun);
+#endif
   
 	return nearest;
 }
@@ -124,43 +129,28 @@ void print_knn(int K, keighbor_t* cknn){
            (cknn+i)->offset,(cknn+i)->sq_dist,(cknn+i)->value);
 }
 
-
-int knn_knoll_train(keighbor_t* cknn, vect* subj, int K){
+int knn_knoll_train_decide(keighbor_t* cknn, vect* subj, int K){
   int result = 0;
   for(int i = 0; i < K; i++)
     result += (cknn+i)->value;
   result = result > 0?1:-1;
-/*  if (result != (int)gsl_vector_get(subj,2)){
-    print_vec(subj);
-    print_knn(K, cknn);
-  }*/
   return result;
 }
 
-double knn_knoll_rms(mtrx* train, mtrx* test, int K, double(dist_fun)(vect*,vect*,int)){
-  double RMS_SQ = 0;
+double knn_knoll_hitrate(mtrx* train, mtrx* test, int K, dist_fun_t d_fun){
+  int n_miss = 0;
   keighbor_t* cknn = (keighbor_t*)malloc(sizeof(keighbor_t)*K);
   gsl_vector_view subj;
   
   for(int i = 0; i<test->size1; i++){
     subj = gsl_matrix_row(test,i);
-//
-//    print_vec(&subj.vector);
-    cknn = k_nearest(K, &subj.vector, train,cknn, dist_fun);
-//    print_vec(&subj.vector);
-//    print_knn(K, cknn);
-    
-    int trained = knn_knoll_train(cknn, &subj.vector, K);
+    k_nearest(K, &subj.vector, train,cknn, d_fun);    
+    int trained = knn_knoll_train_decide(cknn, &subj.vector, K);
     int actual = (int)*(subj.vector.data+test->size2-1);
-    //special case for knolls where distance will always be 0 or abs(2)
-    RMS_SQ += trained == actual?0:1;
-//    if (trained != actual)
-//      printf("mispredict at index: %d\n", i);
-//    RMS_SQ += (trained - actual)*(trained - actual); 
+    n_miss += trained == actual?0:1;
   }
   free(cknn);
-  double meanRMS = RMS_SQ/(double)test->size1;
-  return meanRMS;
+  return (test->size1 - (double)n_miss)/test->size1;
 }
 
 void gplot_knn2plot(mtrx* coords, char* fname){

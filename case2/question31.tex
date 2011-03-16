@@ -1,5 +1,39 @@
 \section*{Question 3.1}
-Deliverables: 
+The sourcecode for our k-NN classifier is in \texttt{src/c\_code/common\_case.c}. The workhorse function is 
+\texttt{void k\_nearest(K, test\_subj, *train\_set, *result\_out, dist\_fun\_pointer);}
+where the only non obvious argument might be function pointer in order to achieve functional polymorphism for the distance metric.
 
-source code of your nearest neighbor classifier; results of k-NN
+The hitrate on the testset is calculated by iterating through the testset, extracting the k-NN and estimating the value by simple majority. This is then compared to the value given in the testset to determine hit or miss.
 
+\begin{tabular}{|l|l|l|}
+  \textbf{Set}  & \textbf{K}  & \textbf{Accuracy}  \\\hline
+  A & 1 & 0.96 \\\hline 
+  A & 3 & 0.98 \\\hline 
+  A & 5 & 0.97 \\\hline 
+  A & 7 & 0.96 \\\hline 
+  A & 9 & 0.97 \\\hline 
+\end{tabular}
+
+\begin{tabular}{|l|l|l|}
+  \textbf{Set}  & \textbf{K}  & \textbf{Accuracy}  \\\hline
+  B & 1 & 0.77 \\\hline 
+  B & 3 & 0.80 \\\hline 
+  B & 5 & 0.81 \\\hline 
+  B & 7 & 0.81 \\\hline 
+  B & 9 & 0.77 \\\hline 
+\end{tabular}
+
+\begin{tabular}{|l|l|l|}
+  \textbf{Set}  & \textbf{K}  & \textbf{Accuracy}  \\\hline
+  C & 1 & 0.80 \\\hline 
+  C & 3 & 0.68 \\\hline 
+  C & 5 & 0.66 \\\hline 
+  C & 7 & 0.58 \\\hline 
+  C & 9 & 0.54 \\\hline 
+\end{tabular}
+
+KnollA performs comparably well to the LDA estimation due to clear seperation of classes on the X axis. 
+
+KnollB performs better with k-NN than LDA, due to the fact that the classes form several homogeneous clusters.
+
+The difference in performance between k-NN and LDA on KnollC can be explained by considering KnollC as KnollA with the X axis collapsed. LDA is unaffected by the scaling of the X axis by 100 while k-NN selection in effect comes to rely solely on the Y value, where the entropy is very high. 
