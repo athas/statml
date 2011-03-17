@@ -1,9 +1,17 @@
-\section*{Question 3.2}
-\subsection*{requirements}
-proof that d is a metric; results for the k-NN classifier using the non-standard metric d applied to the knollC data and a short discussion of the results
+Applying the metric d to KnollC results in the exact same k-NN behavior as KnollA with the euclidean distance metric used in 3.1.
 
-\subsection*{intention}
-expand the dot-product math operations to show how we arrive at identical 
-results to KnollA.
+Given that KnollC is symmetrically equivalent to KnollC with the values on the x axis divided by 100 it is easy to see that multiplying vectors in KnollC with the matrix M makes them exactly equivalent to vectors at the same index in KnollA.
 
- 
+$\begin{pmatrix}
+ 100.000000 & 0.000000 \\
+ 0.000000 & 1.000000 \\
+\end{pmatrix}
+ \begin{pmatrix}
+ 0.003113  \\
+ -1.045690
+\end{pmatrix}
+= \begin{pmatrix}
+ 0.311284  \\ 
+-1.045690
+\end{pmatrix}
+$

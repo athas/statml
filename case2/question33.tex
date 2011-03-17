@@ -1,17 +1,16 @@
 \section*{Question 3.3}
-\subsection*{requirements}
-What do you observe? What happens for n  infty? What does this imply for nearest neighbor classification?
-Deliverables: discussion of average length and distance of random vectors in high dimensional feature spaces
+We have generated a matrix of $n$ dimensions times $m$ random Gauss samples.
 
-\subsection*{intention}
-plot the two developments from 1 to 1000
-plot the relation between the two 
+For $1 \to n$ we calculate the average of the lenghts of the $m$ samples and the average of the $m^2$ distances between the $m$ samples.
+These are then plotted as function of $n$:
 
-describe how the constant ratio between the above shows that the applicability of k-NN is unaffected by the number of dimensions.
+\includegraphics[width=1.1\textwidth]{fig_out/q33.pdf}
 
-\subsubsection*{if there is more time, and T is happy}
-ensure that the lazyness in generating the 1 to 1000 range of dimensions does
-in fact, and not just intuitively, not affect the result.
+We then plot the relation between the average length and the average distance:
 
-plot the first two values on a Normal probability plot
-%http://en.wikipedia.org/wiki/Normal_probability_plot
+\includegraphics[width=1.1\textwidth]{fig_out/q33dol.pdf}
+
+From this graph we conclude that the relationship between length and distance
+as a result of the dimensionally is a constant factor for every $n$.
+
+This implies that the applicability of the k-NN method is not affected by the number of parameters.
