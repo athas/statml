@@ -15,8 +15,8 @@ void gplot_one2infty(double* data, int infty, char* fname){
   fprintf(fp, "#ndim:meanlen:meandist\n");
   
 	for (int i=0; i<infty;i++){
-    fprintf(fp, "%d\t\t%f\t\t%f\n", 
-              i+1, *(data+i), *(data+infty+i));
+    fprintf(fp, "%d\t\t%f\t\t%f\t\t%f\n", 
+              i+1, *(data+i), *(data+infty+i), *(data+i)/(*(data+infty+i)));
 	}
 	fclose(fp);
 }

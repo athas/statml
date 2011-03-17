@@ -117,9 +117,7 @@ void k_nearest(int k, vect* subj, mtrx* others,keighbor_t* nearest, dist_fun_t d
 	}
 #ifdef SANITYCHECK
   test_nearest(k, nearest,subj, others, wrk,cur_max, d_fun);
-#endif
-  
-	return nearest;
+#endif  
 }
 
 void print_knn(int K, keighbor_t* cknn){
