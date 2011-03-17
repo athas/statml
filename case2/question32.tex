@@ -1,6 +1,37 @@
+\section*{Question 3.2}
+We check that the given metric fulfills the four requirements for a
+metric, utilising the properties of norms.
+
+\begin{enumerate}
+\item $d(\bold{x},\bold{z}) \geq 0$ (non-negativity): As a norm
+  $||\cdot||$ is always non-negative, this property is immediate.
+\item $d(\bold{x},\bold{z}) = 0 \Leftrightarrow \bold{x}=\bold{z}$ (identity of
+  indiscernibles): The norm $||\bold{Mx}-\bold{Mz}||$ is only zero if
+  $\bold{Mx}-\bold{Mz}=\bold{0}$ (by the definition of a norm), which
+  is again only the case if $\bold{x}=\bold{z}$.  Holds in both
+  directions.
+\item $d(\bold{x},\bold{z}) = d(\bold{z},\bold{x})$ (symmetry):
+  \begin{align*}
+    d(\bold{x},\bold{z})&=||\bold{Mx}-\bold{Mz}||&\text{(By def.)} \\
+    &=||\bold{Mx}+(-1)\bold{Mz}||&\text{(Rewriting)} \\
+    &=||(-1)\bold{Mz}+\bold{Mx}||&\text{(Commutativity of addition)} \\
+    &=|-1|||(-1)\bold{Mz}+\bold{Mx}||&\text{(Multiplying by one)} \\
+    &=||\bold{Mz}-\bold{Mx}||&\text{(Positive homogeneity of norms)} \\
+    &=d(\bold{z},\bold{x})&\text{(By def.)}
+\end{align*}
+\item $d(\bold{x}, \bold{z}) \leq d(\bold{x}, \bold{y}) + d(\bold{y},
+  \bold{z})$ (triangle inequality):
+  \begin{align*}
+    ||\bold{Mx}-\bold{My}+\bold{My}-\bold{Mz}|| &\leq ||\bold{Mx}-\bold{My}|| + ||\bold{My}-\bold{Mz}||&\text{(By triangle ineq. of norms)}\\
+    ||\bold{Mx}-\bold{Mz}|| &\leq ||\bold{Mx}-\bold{My}|| + ||\bold{My}-\bold{Mz}||&\text{(Simplifying terms)}\\
+    d(\bold{x}, \bold{z}) &\leq d(\bold{x}, \bold{y}) + d(\bold{y}, \bold{z})&\text{(By def.)}
+  \end{align*}
+\end{enumerate}\qed
+
 Applying the metric d to KnollC results in the exact same k-NN behavior as KnollA with the euclidean distance metric used in 3.1.
 
 Given that KnollC is symmetrically equivalent to KnollC with the values on the x axis divided by 100 it is easy to see that multiplying vectors in KnollC with the matrix M makes them exactly equivalent to vectors at the same index in KnollA.
+Here exemplified by multiplying the first entry in KnollCtest.dat with M:
 
 $\begin{pmatrix}
  100.000000 & 0.000000 \\

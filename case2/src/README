@@ -1,1 +1,3 @@
 Plain R.  Both files have to be run from the src directory.
+
+The c code for question 3 compiles and runs with "make run_all" in the c_code directory. It requires the gsl library: http://www.gnu.org/software/gsl/

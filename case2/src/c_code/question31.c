@@ -16,17 +16,6 @@ static double sq_dist(vect* v1, vect* v2, int lim){
 	return sum;
 }
 
-static double M_data[4] ={100.0, 0.0, 0.0,1.0};
-
-static double other_dist(vect* x, vect* z, int lim){
-  gsl_matrix_view M = gsl_matrix_view_array(M_data, 2, 2);
-  double wrk[2];
-  gsl_vector_view tmp = gsl_vector_view_array(wrk, 2);
-  gsl_blas_dgemv(CblasNoTrans, 1, &M.matrix, x, 0, &tmp.vector);
-  gsl_blas_dgemv(CblasNoTrans, -1, &M.matrix, x, 1, &tmp.vector);
-  return gsl_blas_dnrm2(&tmp.vector);
-}
-
 int main(int argv, char** argc){
 	printf("\n\nRunning code for question 3.1:\n\n");
 

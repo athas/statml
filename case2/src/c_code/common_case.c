@@ -78,6 +78,7 @@ static inline int knn_in_nearest(int subj, int K, keighbor_t* cknn){
   return 0;
 }
 
+#ifdef SANITYCHECK
 static void test_nearest(int k, keighbor_t* cknn,vect* subj, mtrx* others, vect* wrk, int cur_max, dist_fun_t d_fun){
   int max = max_offset(k, cknn);
   if(max != cur_max)
@@ -91,6 +92,7 @@ static void test_nearest(int k, keighbor_t* cknn,vect* subj, mtrx* others, vect*
 		}
 	}
 }
+#endif
 
 
 void k_nearest(int k, vect* subj, mtrx* others,keighbor_t* nearest, dist_fun_t d_fun){
