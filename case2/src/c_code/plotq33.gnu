@@ -12,7 +12,7 @@ set output 'fig_out/q33.pdf'
 
 plot 'fig_out/q33.dat' using 1:2 with lines lt 1 title 'avg. length',\
  '' using 1:3 with lines lt 2 title 'avg. dist',\
- '' using 1:4 with lines lt 3 title '(avg. length)/(avg. dist)'
+ '' using 1:(ddiv($2,$3)) with lines lt 3 title '(avg. length)/(avg. dist)'
 
 set output 'fig_out/q33dol.pdf'
 set xrange [0:80]

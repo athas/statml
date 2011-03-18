@@ -6,7 +6,7 @@
  * {xmin,xmax,ymin,ymax}*/
 
 #define NUM_SAMP 50
-#define MAX_D 5000
+#define MAX_D 50
 
 void gplot_one2infty(double* data, int infty, char* fname){
 	FILE* fp;
@@ -28,7 +28,7 @@ static inline void fill_n_dim_vect(vect* trgt, gsl_rng* r){
   }
 }
 
-static inline mtrx* gen_n_dim(int N, int samples, double sigma, double mean){
+static inline mtrx* gen_n_dim(int N, int samples){
   mtrx* out = gsl_matrix_alloc(samples, N);
   
   gsl_rng* r = gsl_rng_alloc(gsl_rng_taus);
@@ -72,7 +72,7 @@ int main(int argv, char** argc){
   double* mean_l2 = (double*) malloc(sizeof(double)*MAX_D*2);
   double* mean_dist = mean_l2 + MAX_D;
     
-  mtrx* big_m = gen_n_dim(MAX_D, NUM_SAMP, 0, 0);
+  mtrx* big_m = gen_n_dim(MAX_D, NUM_SAMP);
   
   for (int i = 1; i <= MAX_D; i++){
     *(mean_l2+i-1) = i+1;
