@@ -6,7 +6,7 @@
  * {xmin,xmax,ymin,ymax}*/
 
 #define NUM_SAMP 50
-#define MAX_D 50
+#define MAX_D 5000
 
 void gplot_one2infty(double* data, int infty, char* fname){
 	FILE* fp;
