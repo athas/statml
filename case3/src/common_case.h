@@ -14,5 +14,9 @@
 
 typedef gsl_vector vect;
 typedef gsl_matrix mtrx;
-	
+
+
+int file2mtrx(const char file_name[], mtrx* trgt);
+void mtrx2file (mtrx* coords, char* fname);
+
 #endif /* end of include guard: COMMON_CASE_1_H_GUARD */

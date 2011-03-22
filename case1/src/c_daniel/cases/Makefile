@@ -1,6 +1,6 @@
 CXX = gcc
 CXX_ARGS = -Wall -g -std=c99 -fopenmp
-DEPS=plot.c statml/statml.c ppm.c common_case.c
+DEPS=plot.c statml.c ppm.c common_case.c
 LIBRARIES =`gsl-config --libs` gnuplot_i.c $(DEPS)
 OUT_DIRS=tex_out img_out
 BASENAME=mycase
@@ -52,7 +52,7 @@ $(BASENAME)$(NUM): $(BASENAME)$(NUM).c $(DEPS) out_dirs
 
 $(BASENAME)$(NUM)_run: $(BASENAME)$(NUM)
 	./$<;\
-	
+
 
 out_dirs: $(OUT_DIRS)
 	mkdir -p $(OUT_DIRS)

@@ -31,8 +31,8 @@ int main(int argv, char** argc){
 	vect	* s_mean1 = sample_mean(train_set1),
 			* s_mean2 = sample_mean(train_set2);
 		
-	mtrx	* s_cov1 = sample_cov(train_set1, s_mean1),
-			* s_cov2 = sample_cov(train_set2, s_mean2);
+	mtrx	* s_cov1 = sample_cov(train_set1, s_mean1);
+//			* s_cov2 = sample_cov(train_set2, s_mean2);
 	
 	pnm_img	* density1 = img_pdf(kande1, s_mean1, s_cov1),
 			*density2 = img_pdf(kande2, s_mean1, s_cov1);
