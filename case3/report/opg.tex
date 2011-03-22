@@ -1,12 +1,12 @@
-\documentclass[a4paper, oneside, final]{memoir}
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
-\usepackage[british]{babel}
-\usepackage{amsmath}
-\usepackage{amsthm}
-\usepackage{ifthen}
-\usepackage{verbatim}
-\usepackage{multirow}
+\documentclass[a4paper, oneside, final]{memoir} 
+\usepackage[T1]{fontenc} 
+\usepackage[utf8]{inputenc} 
+\usepackage[british]{babel} 
+\usepackage{amsmath} 
+\usepackage{amsthm} 
+\usepackage{ifthen} 
+\usepackage{verbatim} 
+\usepackage{multirow} 
 \renewcommand{\rmdefault}{ugm}
 
 % bedre orddeling Gør at der som minimum skal blive to tegn på linien ved
@@ -19,50 +19,54 @@
 % \usepackage{refer}             %
 % As we dont really have any use for \fref and \Fref we just undefine what
 % memoir defined them as, so fancyref can define what it wants.
-\let\fref\undefined
-\let\Fref\undefined
-\usepackage{fancyref} % Better reference. 
+\let\fref\undefined \let\Fref\undefined 
+\usepackage{fancyref} 
 
-\usepackage{pdflscape} % Gør landscape-environmentet tilgængeligt
-\usepackage{fixme}     % Indsæt "fixme" noter i drafts.
-\usepackage{hyperref}  % Indsæter links (interne og eksterne) i PDF
+% Better reference. 
+\usepackage{pdflscape} 
 
-\usepackage[format=hang]{caption,subfig}
-\usepackage{graphicx}
-\usepackage{stmaryrd}
-\usepackage{amssymb}
-\usepackage{listings}
-\usepackage{ulem} % \sout - strike-through
+% Gør landscape-environmentet tilgængeligt
+\usepackage{fixme} 
+
+% Indsæt "fixme" noter i drafts.
+\usepackage{hyperref} 
+
+% Indsæter links (interne og eksterne) i PDF
+\usepackage[format=hang]{caption,subfig} 
+\usepackage{graphicx} 
+\usepackage{stmaryrd} 
+\usepackage{amssymb} 
+\usepackage{listings} 
+\usepackage{ulem} 
+
+% \sout - strike-through
 \usepackage{tikz}
 
 %\renewcommand{\ttdefault}{txtt} % Bedre typewriter font
 % \usepackage[sc]{mathpazo}     % Palatino font
 %\renewcommand{\rmdefault}{urw-garamond} % Garamond
 %\usepackage[urw-garamond]{mathdesign}
-
 % \overfullrule=5pt
 % \setsecnumdepth{part}
-\setcounter{secnumdepth}{1} % Sæt overskriftsnummereringsdybde. Disable = -1.
-\setlength{\parskip}{0.25in}
+\setcounter{secnumdepth}{1} 
 
+% Sæt overskriftsnummereringsdybde. Disable = -1.
+\setlength{\parskip}{0.25in}
 
 \title{Statistical Methods for Machine Learning\\Assignment 3}
 
-\author{Troels Henriksen (athas@sigkill.dk) \\ Daniel Fairchild
-  (daniel.fairchild@gmail.com)}
+\author{Troels Henriksen (athas@sigkill.dk) \\
+Daniel Fairchild (daniel.fairchild@gmail.com)}
 
-\date{\today}
-\pagestyle{plain}
+\date{\today} 
+%\pagestyle{plain}
 
 \newcommand{\nfrac}[2]{\frac{\displaystyle{#1}}{\displaystyle{#2}}}
 
 \begin{document}
 
-\maketitle
-\input{question11}
-\input{question12}
-\input{question21}
-\input{question22}
+\maketitle \input{question11} \input{question12} \input{question21} \input{question22}
+
 \input{question23}
 
-\end{document}
+\end{document} 
