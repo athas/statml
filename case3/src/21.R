@@ -32,11 +32,44 @@ gendiff <- function(pos, neg) {
   res
 }
 
-test <- function(file) {
-  data <- tomatrix(readKnollData(file))
-  pos <- data[data[,3]==1,c(1,2)]
-  neg <- data[data[,3]==-1,c(1,2)]
-  sigma <- median(gendiff(pos, neg))
+compsigma <- function(gamma) {
+  sqrt(1/2*gamma)
 }
 
-test("../Data/knollC-train100.dt")
+test <- function(file) {
+  frame <- readKnollData(file)
+  data <- tomatrix(frame)
+  pos <- data[data[,3]==1,c(1,2)]
+  neg <- data[data[,3]==-1,c(1,2)]
+  sigmaJ <- median(gendiff(pos, neg))
+  bandwidthJ <- 1/(2*sigmaJ**2)
+  Cs <- c(0.1, 1, 10, 100, 1000, 10000)
+  gammas <- apply(array(c(-3, -1, 0, 1, 3)), 1, function(i) { bandwidthJ * 2**i })
+  bestC <- Cs[1]
+  bestgamma <- gammas[1]
+  bestcross = 999
+  for (C in Cs) {
+    for (gamma in gammas) {
+      filter <- ksvm(V3~., data=data, kernel="rbfdot", kpar=list(sigma=gamma), C=C, cross=5, type="C-svc")
+      if (cross(filter) < bestcross) {
+        bestC <- C
+        bestgamma <- gamma
+        bestcross <- cross(filter)
+      }
+    }
+  }
+  print("Best C:")
+  print(bestC)
+  print("Best gamma:")
+  print(bestgamma)
+  print("Cross-examination error of best combination:")
+  print(bestcross)
+  frame <- readKnollData("../Data/knollC-test.dt")
+  data <- tomatrix(frame)
+  filter <- ksvm(V3~., data=data, kernel="rbfdot", kpar=list(sigma=bestgamma), C=bestC, cross=5, type="C-svc")
+  res <- predict(filter, data[,-3])
+  print("Correct classifications in test set:")
+  print(length(res[res==data[,3]]))
+}
+
+#test("../Data/knollC-train100.dt")

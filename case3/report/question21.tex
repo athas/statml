@@ -1,5 +1,7 @@
 \section*{Question 2.1}
 
+The code for this question is in the file \texttt{22.R}.
+
 \texttt{Deliverables: } 
 \begin{itemize}
 	\item \texttt{daniel: } table with results for the three datasets 
@@ -7,3 +9,27 @@
 
 By the given identity we have
 $\gamma_{\text{Jaakkola}}=\frac{1}{2\sigma_{\text{Jaakkola}}^2}$.
+
+\subsection*{\texttt{knollC-train100.dt}}
+\begin{tabular}{|l|r|}
+$C$ & $0.1$ \\
+$\gamma$ & $0.2540398$ \\\hline
+Loss on training data & $2$ \\
+Loss on test data & $2$ \\\hline
+\end{tabular}
+
+\subsection*{\texttt{knollC-train200.dt}}
+\begin{tabular}{|l|r|}
+$C$ & $0.1$ \\
+$\gamma$ & $1.907632$ \\\hline
+Loss on training data & $4$ \\
+Loss on test data & $1$ \\\hline
+\end{tabular}
+
+\subsection*{\texttt{knollC-train400.dt}}
+\begin{tabular}{|l|r|}
+$C$ & 1 \\
+$\gamma$ & $1.014212$ \\\hline
+Loss on training data & $5$ \\
+Loss on test data & $1$ \\\hline
+\end{tabular}
