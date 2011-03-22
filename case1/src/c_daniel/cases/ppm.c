@@ -82,7 +82,7 @@ pnm_img *pnm_read(const char file_name[]){
 	}
 	
 	// get PPM type	
-	if(read_line(buffer,MAX_LINE_SIZE,fp));
+	read_line(buffer,MAX_LINE_SIZE,fp);
 	if(buffer[0] != 'P') {
 		printf("Bad header format\n");
 		return NULL;

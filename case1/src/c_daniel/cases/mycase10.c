@@ -1,4 +1,3 @@
-#include "ppm.h"
 #include "common_case.h"
 #include <stdio.h>
 #include <math.h>

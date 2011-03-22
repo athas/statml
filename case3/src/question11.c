@@ -17,36 +17,10 @@ static double sq_dist(vect* v1, vect* v2, int lim){
 }
 
 int main(int argv, char** argc){
-	printf("\n\nRunning code for question 3.1:\n\n");
-
-  printf("running set A\n");
-	mtrx* train_set = read_knoll(DATA_PATH"knollA-train.dt"),
-      * test_set  = read_knoll(DATA_PATH"knollA-test.dt");
-    
-  for (int ik = 1; ik<=9; ik+=2){
-    double RMS = knn_knoll_hitrate(train_set, test_set, ik, sq_dist);
-    printf("K = %d hitrate == %.1f%%\n", ik, RMS*100);
-  }
-  gsl_matrix_free(train_set);
-  gsl_matrix_free(test_set);
+  mtrx* data = gsl_matrix_alloc(50, 2);
+  file2mtrx("../Data/sincTrain50.dt", data);
   
-  printf("running set B\n");
-  train_set = read_knoll(DATA_PATH"knollB-train.dt"),
-  test_set  = read_knoll(DATA_PATH"knollB-test.dt");
-  for (int ik = 1; ik<=9; ik+=2){
-    double RMS = knn_knoll_hitrate(train_set, test_set, ik,sq_dist);
-    printf("K = %d hitrate == %.1f%%\n", ik, RMS*100);
-  }
-  gsl_matrix_free(train_set);
-  gsl_matrix_free(test_set);
+  print_mtrx(data);
   
-  printf("running set C\n");
-  train_set = read_knoll(DATA_PATH"knollC-train.dt"),
-  test_set  = read_knoll(DATA_PATH"knollC-test.dt");
-  for (int ik = 1; ik<=9; ik+=2){
-    double RMS = knn_knoll_hitrate(train_set, test_set, ik,sq_dist);
-    printf("K = %d hitrate == %.1f%%\n", ik, RMS*100);
-  }
-  gsl_matrix_free(train_set);
-  gsl_matrix_free(test_set);
+  mtrx2file(data, "../Data/sincTrain50_out.dt");
 }

@@ -4,7 +4,7 @@
 #include <math.h>
 #include "ppm.h"
 #include "plot.h"
-#include "statml/statml.h"
+#include "statml.h"
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_matrix.h>

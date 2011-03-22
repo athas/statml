@@ -42,8 +42,8 @@ double pdf(gsl_vector* x_m_s, gsl_matrix* cov_inv,gsl_matrix* tmp){
 	//  Let that be a lesson!
 	//	gsl_matrix* tmp = gsl_matrix_alloc(1, x_m_s->size);
 	gsl_blas_dgemm(CblasNoTrans,CblasNoTrans,
-				   1,&mv.matrix, cov_inv,
-				   0 ,tmp);
+                 1,&mv.matrix, cov_inv,
+                 0 ,tmp);
 	gsl_vector_view rv = gsl_matrix_row(tmp,  0);
 	double almost_there;
 	gsl_blas_ddot(&rv.vector, x_m_s, &almost_there);
@@ -63,7 +63,7 @@ double pdf_map(pnm_img* img, vect* sigma, mtrx* cov, double** map){
 	mtrx* cov_inv = inverse_matrix(cov);
 	
 	vect* x = gsl_vector_alloc(3);
-		// working mtrx for pdf()
+  // working mtrx for pdf()
 	gsl_matrix* tmp = gsl_matrix_alloc(1, x->size);
 	
 	pnm_pixmap* pix = (pnm_pixmap*)img->pixels;
@@ -95,36 +95,23 @@ pnm_img* img_pdf(pnm_img* img, vect* sigma, mtrx* cov){
 }
 
 /*mtrx* refined_img2train(pnm_img* img, vect* sigma, mtrx* cov){
-	double* map = (double*)malloc(img->width*img->height*sizeof(double));
-	int pos=0;
-	pnm_pixmap* pix = (pnm_pixmap*)img->pixels;
-	double max_norm = pdf_map(img, sigma, cov, &map)*0.1; //30%
-	for (int i =0; i<img->width*img->height; i++){
-		if (*(map+i) > max_norm){
-			*(pix+pos++) = *(pix+i);
-		}
-	}
-	img->width= pos;
-	img->height = 1;
-	free (map);
-	
-	return img2train_set(img);
-}
-*/
+ double* map = (double*)malloc(img->width*img->height*sizeof(double));
+ int pos=0;
+ pnm_pixmap* pix = (pnm_pixmap*)img->pixels;
+ double max_norm = pdf_map(img, sigma, cov, &map)*0.1; //30%
+ for (int i =0; i<img->width*img->height; i++){
+ if (*(map+i) > max_norm){
+ *(pix+pos++) = *(pix+i);
+ }
+ }
+ img->width= pos;
+ img->height = 1;
+ free (map);
+ 
+ return img2train_set(img);
+ }
+ */
 
-void gplot_knn2plot(mtrx* coords, char* fname){
-	FILE* fp;
-	fp = fopen(fname, "w");
-	pnm_pixmap* pix = (pnm_pixmap*)img->pixels;
-	
-	for (int i = 0; i< coords->size1; i++){
-			fprintf(fp, "%f %f\n", 
-			gsl_matrix_get(coords, i,0),
-			gsl_matrix_get(coords, i,1));
-		}
-	}
-	fclose(fp);
-}
 
 void gplot_img2splot(pnm_img* img, double Z, char* fname){
 	FILE* fp;
@@ -135,8 +122,8 @@ void gplot_img2splot(pnm_img* img, double Z, char* fname){
 		for (int ix=0; ix<img->width; ix++){
 			int pos = ix+(img->height-iy)*img->width;
 			fprintf(fp, "%d %d %f %d %d %d\n", 
-				ix,iy, Z,
-				(pix+pos)->R,(pix+pos)->G,(pix+pos)->B);
+              ix,iy, Z,
+              (pix+pos)->R,(pix+pos)->G,(pix+pos)->B);
 		}
 		fprintf(fp, "\n");
 	}
@@ -147,11 +134,11 @@ void gplot_pdf2splot(vect* mean, mtrx* cov, pnm_img* img, int skip, char* fname)
 	
 	FILE* fp;
 	fp = fopen(fname, "w");
-
+  
 	double Z = 1.0/( (2*M_PI) * sqrt(matrix_determinant(cov)));
 	mtrx* cov_inv = inverse_matrix(cov);
 	vect* x = gsl_vector_alloc(2);
-		// working mtrx for pdf()
+  // working mtrx for pdf()
 	gsl_matrix* tmp = gsl_matrix_alloc(1, x->size);
 	
 	for (int iy=1; iy<=img->height; iy+=skip){
@@ -160,7 +147,7 @@ void gplot_pdf2splot(vect* mean, mtrx* cov, pnm_img* img, int skip, char* fname)
 			gsl_vector_set(x, 1, img->height-iy);
 			gsl_vector_sub(x,mean);
 			fprintf(fp, "%d %d %.16f \n", 
-					ix,iy,Z * pdf(x, cov_inv, tmp));
+              ix,iy,Z * pdf(x, cov_inv, tmp));
 		}
 		fprintf(fp, "\n");
 	}
@@ -205,8 +192,8 @@ mtrx* weighted_2dcov(double* weights, vect* s_mean, pnm_img* img){
 			gsl_matrix_set(tmp_mm, 0, 0, ix - *s_mean->data);
 			gsl_matrix_set(tmp_mm, 1, 0, iy -*s_mean->data+1);
 			gsl_blas_dgemm(CblasNoTrans,CblasTrans,
-						   weights[pos], tmp_mm, tmp_mm,
-						   1, covML);
+                     weights[pos], tmp_mm, tmp_mm,
+                     1, covML);
 		}
 	}
 	gsl_matrix_scale(covML, 1.0/sum);

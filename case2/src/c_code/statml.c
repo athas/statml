@@ -54,7 +54,7 @@ gsl_matrix* sample_cov(gsl_matrix* samples, gsl_vector* meanML){
 }
 
 gsl_matrix* inverse_matrix(gsl_matrix* input){
-	int n = input->size1;
+	size_t n = input->size1;
 	int s;
 	gsl_matrix	*work = gsl_matrix_alloc(n,n), 
 	*winv = gsl_matrix_alloc(n,n);
@@ -68,7 +68,7 @@ gsl_matrix* inverse_matrix(gsl_matrix* input){
 }
 
 double matrix_determinant(gsl_matrix* input){
-	int n = input->size1;
+	size_t n = input->size1;
 	int s;
 	gsl_matrix	*work = gsl_matrix_alloc(n,n);
 	gsl_permutation *p = gsl_permutation_alloc(n);
