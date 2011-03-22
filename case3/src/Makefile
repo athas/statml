@@ -1,7 +1,7 @@
 CXX = gcc
 CXX_ARGS = -Wall -g -std=c99 -fopenmp
 DEPS=statml.c common_case.c
-LIBRARIES =`gsl-config --libs` $(DEPS)
+LIBRARIES =`gsl-config --libs`
 OUT_DIRS=fig_out
 BASENAME=question
 ALL_OUTS=$(BASENAME)31 $(BASENAME)32 $(BASENAME)33 
@@ -15,6 +15,9 @@ run_all: $(ALL_OUTS)
 	done;\
 	gnuplot plotq33.gnu
 
+
+mlp_backprop: mlp_backprop.c
+	$(CXX) $(CXX_ARGS) -o $@ $(LIBRARIES) $<
 
 NUM=31
 
