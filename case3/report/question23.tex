@@ -5,3 +5,37 @@
 	
 	\item \texttt{troels: } derivation of a short formular for computing the distance in feature space induced by a normalized kernel 
 \end{itemize}
+
+Assume a normalized kernel $k : \mathcal{X} \times \mathcal{X}
+\rightarrow \mathcal{R}$.  To construct a feature space $\mathcal{H}$
+(and a dot product in the feature space) corresponding to the kernel
+function, we follow the steps outlined in the lecture slides.
+
+We define the feature map $\Phi(x)(\cdot) = k(\cdot, x)$ and let
+$\mathcal{H}=\{k(x,\cdot)\ |\ x\in\mathcal{X}\}$, such that every
+element can be written as a linear combination of basis vectors
+$k(\cdot, x)$ as
+\[
+f(\cdot) = \sum_{i=1}^m\alpha_ik(\cdot,x_i), m\in \mathbb{M},x_i\in\mathcal{X},\alpha_i\in\mathbb{R}.
+\]
+
+If we have two elements of $\mathcal{H}$
+\[
+f(\cdot) = \sum_{i=1}^m\alpha_ik(\cdot,x_i),\quad
+g(\cdot) = \sum_{j=1}^{m'}\beta_jk(\cdot,x'_j)
+\]
+then we define
+\[
+\langle f, g\rangle = \sum_{i=1}^m\sum_{j=1}^{m'}\alpha_i\beta_jk(x_i,x'_j).
+\]
+
+We can now define a norm
+
+\[
+||f|| = \sqrt{\langle f, f\rangle}
+\]
+and the desired distance function as
+\begin{align*}
+d(x,x') =& ||\Phi(x)-\Phi(x')||.\\
+=& \sqrt{\langle \Phi(x)-\Phi(x'), \Phi(x)-\Phi(x')\rangle}
+\end{align*}
