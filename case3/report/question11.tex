@@ -6,6 +6,15 @@
 	\item \texttt{daniel: } source code of neural network with a single hidden layer including back-propagation to compute partial derivatives
 	
 	\item \texttt{daniel: } verification of gradient computation using numerically estimated gradients;
-	
-	\item \texttt{troels: }derivation of derivative of the transfer function 
 \end{itemize}
+
+Derivation of $\sigma'(u)$ by straightforward symbolic
+differentiation.
+
+\begin{align*}
+  \sigma'(u)=&\frac{d}{du}\sigma(u) & \text{Substituting def.} \\
+  =&\frac{d}{du}\frac{u}{1+|u|} & \text{Substituting def.} \\
+  =&\frac{u'(1+|u|)-|u|(1+|u|)'}{(1+|u|)^2} & \text{Quotient rule}\\
+  =&\frac{(1+|u|)-|u|(0+1)}{(1+|u|)^2} & \text{Sum rule}\\
+  =&\frac{1}{(1+|u|)^2} & \text{Adding terms}\\
+\end{align*}
