@@ -14,14 +14,12 @@ static inline int read_line(char* buffer, const int max_size, FILE* fp){
 	else
 		return 0;
 }
-
 static void path_error(const char* file_name){
 	char path[512];
 	getcwd(path, 512);
 	
 	printf("\"%s%s\" does not exist\n", path, file_name);
 }
-
 static inline void line2mtrx_row(mtrx* trgt, int rowno, char* buf){
   for (int j= 0; j< trgt->size2; j++){
     gsl_matrix_set(trgt, rowno, j,  strtod(buf, &buf));
