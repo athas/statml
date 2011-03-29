@@ -1,6 +1,10 @@
 \section*{Question 2.2}
 
+The code for this question is in the file \texttt{22.R}.
+
 \subsection*{Question 2.2.1}
+
+\includegraphics[width=8cm]{../img/question22-plot.pdf}
 
 %\texttt{Deliverables:} 
 %\begin{itemize}
@@ -9,12 +13,28 @@
 
 \subsection*{Question 2.2.2}
 
+\subsubsection*{$C=0.001$}
+\includegraphics[width=8cm]{../img/question-2-2-1-plot1.pdf}
+\subsubsection*{$C=10$}
+\includegraphics[width=8cm]{../img/question-2-2-1-plot2.pdf}
+
+As a free support vector is a vector where $0<alpha<C$, clearly
+decreasing the value of $C$ will result in more bound support vectors,
+while increasing $C$ will lead to more free support vectors.
+
 %\texttt{Deliverables:} 
 %\begin{itemize}
 %	\item \texttt{daniel,med søtte fra troels} short discussion of how the SVM model changes depending on the choice of C 
 %\end{itemize}
 
 \subsection*{Question 2.2.3}
+
+\begin{tabular}{|l|r|}
+\textbf{Data set} & \textbf{Number of support vectors} \\\hline
+\texttt{knollC-train100.dt} & 66 \\
+\texttt{knollC-train200.dt} & 119 \\
+\texttt{knollC-train400.dt} & 59 \\
+\end{tabular}
 
 %\texttt{Deliverables:} 
 %\begin{itemize}

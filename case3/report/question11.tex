@@ -8,6 +8,13 @@
 %	\item \texttt{daniel: } verification of gradient computation using numerically estimated gradients;
 %\end{itemize}
 
+The source code for this assigment is in the file \texttt{11.R}.  The
+neural network implementation supports arbitrary non-cyclic
+connections between neurons by following the strategy of defining an
+$M\times M$ matrix of weights as described in the lecture.  The matrix
+is initialised by assigning it values uniformly distributed in the
+interval $(-0.001, 0.001)$.
+
 Derivation of $\sigma'(u)$ by straightforward symbolic
 differentiation.
 
@@ -18,3 +25,26 @@ differentiation.
   =&\frac{(1+|u|)-|u|(0+1)}{(1+|u|)^2} & \text{Sum rule}\\
   =&\frac{1}{(1+|u|)^2} & \text{Adding terms}\\
 \end{align*}
+
+The table below was constructed with $\epsilon=0.0001$, $M=5, m=1,
+d=1$ and data from the \texttt{sincTrain50.dt} set.  $\Phi$ was
+randomly generated as mentioned above.
+
+\begin{tabular}{c|c|r|r}
+$i$ & $j$ & Analytical gradient & Numerical gradient \\\hline
+\multirow{1}{*}{$2$} & $1$ & $0.004498441$ & $0$ \\\hline
+\multirow{2}{*}{$3$} & $1$ & $-1.436347$ & $-0.009540368$ \\
+& $2$ & $-1.040937^{-5}$ & $0$ \\\hline
+\multirow{3}{*}{$4$} & $1$ & $-1.204136$ & $0$ \\
+& $2$ & $1.054657^{-5}$ & $0$ \\
+& $3$ & $0.001014082$ & $0$ \\\hline
+\multirow{4}{*}{$5$} & $1$ & $13.23582$ & $13.23358$ \\
+& $2$ & $0.002450268$ & $0.002443357$ \\
+& $3$ & $-0.01310360$ & $-0.01303233$ \\
+& $4$ & $-0.005316269$ & $0$ \\\hline
+\end{tabular}
+
+Clearly, the results are abberant for some connections, such as $1$ to
+$4$ and $1$ to $3$, and not particularly accurate for the rest either.
+We have been unable to locate the source of these deficiencies, but we
+assume implementation error.
