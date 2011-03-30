@@ -65,83 +65,65 @@ int trainOutput[numPatterns];
 // calculates the network output
 void calcNet(void)
 {
-    //calculate the outputs of the hidden neurons
-    //the hidden neurons are tanh
-    int i = 0;
-    for(i = 0;i<numHidden;i++)
-    {
-	  hiddenVal[i] = 0.0;
+	//calculate the outputs of the hidden neurons
+	//the hidden neurons are tanh
+	int i = 0;
+	for(i = 0;i<numHidden;i++){
+		hiddenVal[i] = 0.0;
+		for(int j = 0;j<numInputs;j++){
+			hiddenVal[i] += (trainInputs[patNum][j] * weightsIH[j][i]);
+		}
+		hiddenVal[i] = tanh(hiddenVal[i]);
+	}
 
-        for(int j = 0;j<numInputs;j++)
-        {
-	   hiddenVal[i] = hiddenVal[i] + (trainInputs[patNum][j] * weightsIH[j][i]);
-        }
+	//calculate the output of the network
+	//the output neuron is linear
+	outPred = 0.0;
 
-        hiddenVal[i] = tanh(hiddenVal[i]);
-    }
-
-   //calculate the output of the network
-   //the output neuron is linear
-   outPred = 0.0;
-
-   for(i = 0;i<numHidden;i++)
-   {
-    outPred = outPred + hiddenVal[i] * weightsHO[i];
-   }
-    //calculate the error
-    errThisPat = outPred - trainOutput[patNum];
-
+	for(i = 0;i<numHidden;i++){
+		outPred = outPred + hiddenVal[i] * weightsHO[i];
+	}
+	//calculate the error
+	errThisPat = outPred - trainOutput[patNum];
 }
 
 
 //************************************
 //adjust the weights hidden-output
-void WeightChangesHO(void)
-{
-   for(int k = 0;k<numHidden;k++)
-   {
-    double weightChange = LR_HO * errThisPat * hiddenVal[k];
-    weightsHO[k] = weightsHO[k] - weightChange;
-
-    //regularisation on the output weights
-    if (weightsHO[k] < -5)
-    {
-     weightsHO[k] = -5;
-    }
-    else if (weightsHO[k] > 5)
-    {
-     weightsHO[k] = 5;
-    }
-   }
-
- }
+void WeightChangesHO(void){
+	for(int k = 0;k<numHidden;k++){
+		double weightChange = LR_HO * errThisPat * hiddenVal[k];
+		weightsHO[k] -= weightChange;
+		//regularisation on the output weights
+		if (weightsHO[k] < -5){
+			weightsHO[k] = -5;
+		}
+		else if (weightsHO[k] > 5){
+			weightsHO[k] = 5;
+		}
+	}
+}
 
 
 //************************************
 // adjust the weights input-hidden
-void WeightChangesIH(void)
-{
-
-  for(int i = 0;i<numHidden;i++)
-  {
-   for(int k = 0;k<numInputs;k++)
-   {
-    double x = 1 - (hiddenVal[i] * hiddenVal[i]);
-    x = x * weightsHO[i] * errThisPat * LR_IH;
-    x = x * trainInputs[patNum][k];
-    double weightChange = x;
-    weightsIH[k][i] -= - weightChange;
-   }
-  }
-
+void WeightChangesIH(void){
+	for(int i = 0;i<numHidden;i++){
+		for(int k = 0;k<numInputs;k++){
+			double x = 1 - (hiddenVal[i] * hiddenVal[i]);
+			x = x * weightsHO[i] * errThisPat * LR_IH;
+			x = x * trainInputs[patNum][k];
+			double weightChange = x;
+			weightsIH[k][i] -= weightChange;
+		}
+	}
 }
 
 
 //************************************
 // generates a random number
-double getRand(void)
-{
- return ((double)rand())/(double)RAND_MAX;
+double getRand(void){
+	return ((double)rand())/(double)RAND_MAX;
 }
 
 
@@ -153,14 +135,13 @@ void initWeights(void)
 
  for(int j = 0;j<numHidden;j++)
  {
-    weightsHO[j] = (getRand() - 0.5)/2;
-    for(int i = 0;i<numInputs;i++)
-    {
-     weightsIH[i][j] = (getRand() - 0.5)/5;
-     printf("Weight = %f\n", weightsIH[i][j]);
-    }
+	weightsHO[j] = (getRand() - 0.5)/2;
+	for(int i = 0;i<numInputs;i++)
+	{
+	 weightsIH[i][j] = (getRand() - 0.5)/5;
+	 printf("Weight = %f\n", weightsIH[i][j]);
+	}
   }
-
 }
 
 
@@ -168,35 +149,34 @@ void initWeights(void)
 // read in the data
 void initData(void)
 {
-    printf("initialising data\n");
+	printf("initialising data\n");
 
-    // the data here is the XOR data
-    // it has been rescaled to the range
-    // [-1][1]
-    // an extra input valued 1 is also added
-    // to act as the bias
-    // the output must lie in the range -1 to 1
+	// the data here is the XOR data
+	// it has been rescaled to the range
+	// [-1][1]
+	// an extra input valued 1 is also added
+	// to act as the bias
+	// the output must lie in the range -1 to 1
 
-    trainInputs[0][0]  = 1;
-    trainInputs[0][1]  = -1;
-    trainInputs[0][2]  = 1;    //bias
-    trainOutput[0] = 1;
+	trainInputs[0][0]  = 1;
+	trainInputs[0][1]  = -1;
+	trainInputs[0][2]  = 1;	//bias
+	trainOutput[0] = 1;
 
-    trainInputs[1][0]  = -1;
-    trainInputs[1][1]  = 1;
-    trainInputs[1][2]  = 1;       //bias
-    trainOutput[1] = 1;
+	trainInputs[1][0]  = -1;
+	trainInputs[1][1]  = 1;
+	trainInputs[1][2]  = 1;		//bias
+	trainOutput[1] = 1;
 
-    trainInputs[2][0]  = 1;
-    trainInputs[2][1]  = 1;
-    trainInputs[2][2]  = 1;        //bias
-    trainOutput[2] = -1;
+	trainInputs[2][0]  = 1;
+	trainInputs[2][1]  = 1;
+	trainInputs[2][2]  = 1;		//bias
+	trainOutput[2] = -1;
 
-    trainInputs[3][0]  = -1;
-    trainInputs[3][1]  = -1;
-    trainInputs[3][2]  = 1;     //bias
-    trainOutput[3] = -1;
-
+	trainInputs[3][0]  = -1;
+	trainInputs[3][1]  = -1;
+	trainInputs[3][2]  = 1;	 //bias
+	trainOutput[3] = -1;
 }
 
 
@@ -217,15 +197,15 @@ void displayResults(void)
 // calculate the overall error
 void calcOverallError(void)
 {
-     RMSerror = 0.0;
-     for(int i = 0;i<numPatterns;i++)
-        {
-         patNum = i;
-         calcNet();
-         RMSerror = RMSerror + (errThisPat * errThisPat);
-        }
-     RMSerror = RMSerror/numPatterns;
-     RMSerror = sqrt(RMSerror);
+	 RMSerror = 0.0;
+	 for(int i = 0;i<numPatterns;i++)
+		{
+		 patNum = i;
+		 calcNet();
+		 RMSerror = RMSerror + (errThisPat * errThisPat);
+		}
+	 RMSerror = RMSerror/numPatterns;
+	 RMSerror = sqrt(RMSerror);
 }
 
 
@@ -246,28 +226,26 @@ int main(void){
  initData();
 
  // train the network
-    for(int j = 0;j <= numEpochs;j++)
-    {
-        for(int i = 0;i<numPatterns;i++)
-        {
-          //select a pattern at random
-          patNum = rand()%numPatterns;
+	for(int j = 0;j <= numEpochs;j++)
+	{
+		for(int i = 0;i<numPatterns;i++){
+			//select a pattern at random
+			patNum = rand()%numPatterns;
 
-          //calculate the current network output
-          //and error for this pattern
-          calcNet();
+			//calculate the current network output
+			//and error for this pattern
+			calcNet();
 
-          //change network weights
-          WeightChangesHO();
-          WeightChangesIH();
-        }
+			//change network weights
+			WeightChangesHO();
+			WeightChangesIH();
+		}
+		//display the overall network error
+		//after each epoch
+		calcOverallError();
 
-        //display the overall network error
-        //after each epoch
-        calcOverallError();
-
-        printf("epoch = %d RMS Error = %f\n",j,RMSerror);
-    }
+		printf("epoch = %d RMS Error = %f\n",j,RMSerror);
+	}
 
  //training has finished
  //display the results

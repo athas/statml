@@ -127,3 +127,15 @@ void vect2tex(gsl_vector* src, char* cmd_name, FILE* fp){
 	mtrx2tex(&mv.matrix,cmd_name,fp);
 }
 
+
+
+void norm_vwise(gsl_matrix* trgt){
+  gsl_vector_view row;
+  double norm;
+  for(int i = 0; i< trgt->size1; i++){
+    row = gsl_matrix_row(trgt, i);
+    norm = gsl_blas_dnrm2(&row.vector);
+    gsl_vector_scale(&row.vector, 1.0/norm);
+  }
+}
+

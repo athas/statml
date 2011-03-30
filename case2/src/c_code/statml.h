@@ -39,6 +39,9 @@ void vect2tex_trans(gsl_vector* src,char* cmd_name, FILE* fp);
 
 void vect2tex(gsl_vector* src,char* cmd_name, FILE* fp);
 
+void norm_vwise(gsl_matrix* trgt);
+  
+  
 #ifdef __cplusplus
 }
 #endif
