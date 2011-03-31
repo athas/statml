@@ -79,7 +79,7 @@ double ffnn_predict(
 }
 
 
-static void backpropagate(ff_nn_t* w, vect* hidden_res, double diff, vect* input, vect* gradient){
+static void backpropagate(ff_nn_t* w, vect* hidden_res, double diff, vect* input, mtrx* gradient){
   mtrx* HI_weight = w->hidden;
   vect* HO_weight = w->output;
 
@@ -93,16 +93,18 @@ static void backpropagate(ff_nn_t* w, vect* hidden_res, double diff, vect* input
     double hi_delta = 1-(hid_val_i* hid_val_i)*ho_delta;
     hi_delta *= gsl_vector_get(input, 1); 
     
-    gsl_vector_set(gradient, i, ho_delta*gsl_matrix_get(HI_weight, i, 1));
+    gsl_matrix_set(gradient, i,2, ho_delta*gsl_matrix_get(HI_weight, i, 1));
+    gsl_matrix_set(gradient, i,0, hi_delta);
     for(int j = 0; j< input->size; j++){ 
       double hi_ij_weight = gsl_matrix_get(HI_weight, i, j);
       hi_ij_weight -= (hi_delta*gsl_vector_get(input, j))*w->lr_hin;
       gsl_matrix_set(HI_weight, i, j, hi_ij_weight);
+      gsl_matrix_set(gradient, i, j+1, hi_delta*hi_ij_weight);
     }
   }
 }
 
-double batch_train(ff_nn_t* weights, mtrx* data, double(*trans_fn)(double), vect* grad){
+double batch_train(ff_nn_t* weights, mtrx* data, double(*trans_fn)(double), mtrx* grad){
   mtrx* intermed=gsl_matrix_alloc(data->size1,weights->num_nodes+1);
   //columns above: hidden_output && result
   gsl_vector_view h_res;
@@ -149,7 +151,7 @@ int main(int argv, char** argc){
     double prev_error;
     ff_nn_t* weights = init_weights(1, n_hn, 1, LR, LR*3);
     gsl_vector_set_all(&bias_col.vector, 1.0);
-    vect* gradient = gsl_vector_alloc(n_hn);
+    mtrx* gradient = gsl_matrix_alloc(n_hn,2+1);
     do{
       prev_error = cur_error;
       cur_error = batch_train(weights, data, trans_fn, gradient);
@@ -159,9 +161,7 @@ int main(int argv, char** argc){
 
     printf("hnodes:%d batch_size:%d LR:%f converged@%f in %d its\n", 
            n_hn, batch_size, LR, cur_error, num_its);
-    print_vec(gradient);
-    
-    gsl_vector_free(gradient);
+    print_mtrx(gradient);
+    gsl_matrix_free(gradient);
   }
-  mtrx2file(data, "fig_out/normsinctrain.dt");
 }
