@@ -79,28 +79,24 @@ double ffnn_predict(
 }
 
 
-static void backpropagate(ff_nn_t* w, vect* hidden_res, double diff, vect* input, mtrx* gradient){
+static void backpropagate(ff_nn_t* w, vect* hidden_res, double ho_delta, vect* input, mtrx* gradient){
   mtrx* HI_weight = w->hidden;
   vect* HO_weight = w->output;
 
   for(int i = 0; i < w->num_nodes; i++){
     double hid_val_i = gsl_vector_get(hidden_res, i);
-    
     double ho_i_weight = gsl_vector_get(HO_weight, i);
-    double ho_delta = (diff>0?diff:-diff)*hid_val_i;
-    gsl_vector_set(HO_weight,i, ho_i_weight-(ho_delta*w->lr_hout));
+    double hi_i1_weight = gsl_matrix_get(HI_weight, i, 1);
+
+    gsl_vector_set(HO_weight,i, ho_i_weight-(ho_delta*w->lr_hout*hid_val_i));
     
-    double hi_delta = 1-(hid_val_i* hid_val_i)*ho_delta;
-    hi_delta *= gsl_vector_get(input, 1); 
+    double hi_delta = (1-(hid_val_i* hid_val_i));
+    hi_delta *= (gsl_matrix_get(HI_weight,i,0)+hi_i1_weight)*ho_delta;
     
-    gsl_matrix_set(gradient, i,2, ho_delta*gsl_matrix_get(HI_weight, i, 1));
-    gsl_matrix_set(gradient, i,0, hi_delta);
-    for(int j = 0; j< input->size; j++){ 
-      double hi_ij_weight = gsl_matrix_get(HI_weight, i, j);
-      hi_ij_weight -= (hi_delta*gsl_vector_get(input, j))*w->lr_hin;
-      gsl_matrix_set(HI_weight, i, j, hi_ij_weight);
-      gsl_matrix_set(gradient, i, j+1, hi_delta*hi_ij_weight);
-    }
+    gsl_matrix_set(gradient, i,0, hi_delta*gsl_vector_get(input, 0));
+    gsl_matrix_set(gradient, i,1, hi_delta*gsl_vector_get(input, 1));
+    gsl_matrix_set(gradient, i,2, ho_delta*hid_val_i);
+    gsl_matrix_set(HI_weight, i, 1, hi_i1_weight-(hi_delta*gsl_vector_get(input, 1)*w->lr_hin));
   }
 }
 
@@ -126,7 +122,7 @@ double batch_train(ff_nn_t* weights, mtrx* data, double(*trans_fn)(double), mtrx
     backpropagate(weights, &h_res.vector, local_error, &inp.vector, grad);
   }
   gsl_matrix_free(intermed);
-  mean_err/=weights->num_nodes;
+  mean_err/=data->size1;
   return mean_err*mean_err;
 }
 
@@ -134,34 +130,81 @@ double trans_fn(double inp){
   return inp/(1+ (inp<0?-inp:inp));
 }
 
+double err_fun(ff_nn_t* w, mtrx* data){
+  double mean_err= 0.0;
+  vect* h_res = gsl_vector_alloc(w->num_nodes);
+  gsl_vector_view inp;
+
+  for(int i =0;i<data->size1; i++){
+    inp = gsl_matrix_subrow(data, i, 0, 2);
+    mean_err+=ffnn_predict(&inp.vector, w, h_res,trans_fn) - gsl_matrix_get(data, i, 2);
+  }
+  mean_err/=data->size1;
+  return mean_err*mean_err;
+}
+
+mtrx* num_est_grad(ff_nn_t*w, mtrx* data, double eps){
+  mtrx* ne_grad = gsl_matrix_alloc(w->num_nodes,2+1);
+  mtrx* wh_clone = gsl_matrix_alloc_from_matrix(w->hidden, 0, 0, w->hidden->size1, w->hidden->size2);
+  vect* wo_clone = gsl_vector_alloc_from_vector(w->output, 0, w->output->size,1);
+  ff_nn_t weight_clone = *(w);
+  weight_clone.hidden = wh_clone;
+  weight_clone.output = wo_clone;
+  
+  double err_fun_std = err_fun(w, data);
+
+  for(int i= 0; i< wo_clone->size; i++){
+    double org_val = gsl_vector_get(w->output, i);
+    gsl_vector_set(wo_clone, i, org_val+eps);
+    double derv = (err_fun(&weight_clone, data)-err_fun_std)/eps;
+    gsl_matrix_set(ne_grad, i, 2, derv);
+    gsl_vector_set(wo_clone, i, org_val); //restore org val
+    
+    for(int j = 0; j < w->hidden->size2; j++){
+      org_val = gsl_matrix_get(wh_clone, i, j);
+      derv = (err_fun(&weight_clone, data)-err_fun_std)/eps;
+      gsl_matrix_set(ne_grad, i, j, err_fun(&weight_clone, data) -err_fun_std);
+      gsl_matrix_set(wh_clone, i, j, org_val);
+    }
+  }
+  
+  free(wh_clone);
+  free(wo_clone);
+  return ne_grad;
+}
+
 int main(int argv, char** argc){
   mtrx* data = gsl_matrix_alloc(50, 3);
   gsl_vector_view bias_col = gsl_matrix_column(data, 0);
-  gsl_matrix_view d_file_data = gsl_matrix_submatrix(data, 0, 1, 50,2);
+  gsl_matrix_view d_file_data = gsl_matrix_submatrix(data,0,1,50,2);
   
   file2mtrx("../Data/sincTrain50.dt", &d_file_data.matrix);
   
-  double LR = 0.00000001;
+  double LR = 0.0000001;
   int batch_size = 50;
-  double delta_threshold = 0.0001;
+  double delta_threshold = 0.001;
   
   for (int n_hn = 2; n_hn <21;n_hn+=18){
     int num_its = 0;
     double cur_error = -1.0;
     double prev_error;
-    ff_nn_t* weights = init_weights(1, n_hn, 1, LR, LR*3);
+    ff_nn_t* weights = init_weights(1, n_hn, 1, LR, LR*10);
     gsl_vector_set_all(&bias_col.vector, 1.0);
-    mtrx* gradient = gsl_matrix_alloc(n_hn,2+1);
+    mtrx* an_grad = gsl_matrix_alloc(n_hn,2+1);
     do{
       prev_error = cur_error;
-      cur_error = batch_train(weights, data, trans_fn, gradient);
+      cur_error = batch_train(weights, data, trans_fn, an_grad);
       num_its++;
 //      printf("%f\n", cur_error);
-    } while(cur_error>delta_threshold);
+    } while(num_its< 125000);
 
     printf("hnodes:%d batch_size:%d LR:%f converged@%f in %d its\n", 
            n_hn, batch_size, LR, cur_error, num_its);
-    print_mtrx(gradient);
-    gsl_matrix_free(gradient);
+    mtrx* ne_grad = num_est_grad(weights, data, 0.0000006);
+    
+    print_mtrx(an_grad);
+    print_mtrx(ne_grad);
+    gsl_matrix_free(an_grad);
+    gsl_matrix_free(ne_grad);
   }
 }
