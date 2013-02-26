@@ -40,13 +40,13 @@ ff_nn_t* init_weights(
     gsl_matrix_set(h_in_w, i, 0, 1.0); //bias
     gsl_vector_set(h_out_w, i, gsl_rng_uniform(r));
     for(int j = 1; j < h_in_w->size2; j++){
-      gsl_matrix_set(h_in_w, i, j, gsl_rng_uniform(r));
+      gsl_matrix_set(h_in_w, i, j, gsl_rng_uniform_pos(r)-0.5);
     }
   }
   gsl_rng_free(r);
   
-  gsl_matrix_scale(h_in_w, weight_fac);
-  gsl_vector_scale(h_out_w, weight_fac);
+  gsl_matrix_scale(h_in_w, weight_fac*2);
+  gsl_vector_scale(h_out_w, weight_fac*2);
   ff_nn_t* out = (ff_nn_t*)malloc(sizeof(ff_nn_t));
   out->num_nodes = num_hidden_nodes;
   out->input_size = num_input;
@@ -180,15 +180,15 @@ int main(int argv, char** argc){
   
   file2mtrx("../Data/sincTrain50.dt", &d_file_data.matrix);
   
-  double LR = 0.0000001;
-  int batch_size = 50;
+  double LR = 0.001;
+  int batch_size = 5;
   double delta_threshold = 0.001;
   
   for (int n_hn = 2; n_hn <21;n_hn+=18){
     int num_its = 0;
     double cur_error = -1.0;
     double prev_error;
-    ff_nn_t* weights = init_weights(1, n_hn, 1, LR, LR*10);
+    ff_nn_t* weights = init_weights(1, n_hn, 0.01, LR, LR*10);
     gsl_vector_set_all(&bias_col.vector, 1.0);
     mtrx* an_grad = gsl_matrix_alloc(n_hn,2+1);
     do{
@@ -196,11 +196,11 @@ int main(int argv, char** argc){
       cur_error = batch_train(weights, data, trans_fn, an_grad);
       num_its++;
 //      printf("%f\n", cur_error);
-    } while(num_its< 125000);
+    } while(num_its< 10);
 
     printf("hnodes:%d batch_size:%d LR:%f converged@%f in %d its\n", 
            n_hn, batch_size, LR, cur_error, num_its);
-    mtrx* ne_grad = num_est_grad(weights, data, 0.0000006);
+    mtrx* ne_grad = num_est_grad(weights, data, 0.001);
     
     print_mtrx(an_grad);
     print_mtrx(ne_grad);
